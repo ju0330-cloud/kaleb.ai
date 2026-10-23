@@ -1,0 +1,2887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaleb AI - Assistant & Minecraft Studio</title>
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Markdown & Highlighting -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <style>
+        :root {
+            --bg-main: #131418;
+            --bg-sidebar: #17181c;
+            --bg-sidebar-hover: #22242a;
+            --bg-card: #1c1d22;
+            --bg-input: #212228;
+            --bg-input-border: #30333d;
+            --bg-thinking: #1a1c24;
+            --border-color: #2b2d35;
+            --text-primary: #f0f2f5;
+            --text-secondary: #9aa0a6;
+            --text-muted: #6e7681;
+            --brand-blue: #4D6BFE;
+            --brand-blue-hover: #3d5be6;
+            --brand-blue-subtle: rgba(77, 107, 254, 0.12);
+            --code-bg: #16181d;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 270px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            user-select: none;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 18px 16px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: #fff;
+            letter-spacing: -0.3px;
+        }
+
+        .logo-icon {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #4D6BFE 0%, #2f44c4 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 15px;
+            box-shadow: 0 4px 12px rgba(77, 107, 254, 0.35);
+        }
+
+        .model-tag {
+            background: var(--brand-blue-subtle);
+            color: var(--brand-blue);
+            font-size: 0.72rem;
+            padding: 2px 7px;
+            border-radius: 6px;
+            font-weight: 600;
+            border: 1px solid rgba(77, 107, 254, 0.25);
+        }
+
+        .new-chat-btn {
+            margin: 6px 14px 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .new-chat-btn:hover {
+            background: var(--bg-sidebar-hover);
+            border-color: var(--brand-blue);
+        }
+
+        .sidebar-sections {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 10px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .sidebar-title {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            padding: 0 8px 6px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-list, .chat-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .file-item, .chat-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            border-radius: var(--radius-sm);
+            font-size: 0.84rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-decoration: none;
+        }
+
+        .file-item:hover, .chat-item:hover {
+            background-color: var(--bg-sidebar-hover);
+            color: var(--text-primary);
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            flex: 1;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 6px;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+
+        .file-item:hover .file-actions {
+            opacity: 1;
+        }
+
+        .action-icon {
+            color: var(--text-muted);
+            padding: 3px 5px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            transition: all 0.15s;
+        }
+
+        .action-icon:hover {
+            color: var(--brand-blue);
+            background: var(--brand-blue-subtle);
+        }
+
+        .sidebar-footer {
+            padding: 14px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .settings-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s;
+        }
+
+        .settings-btn:hover {
+            color: var(--text-primary);
+            background: var(--bg-sidebar-hover);
+        }
+
+        /* Main Chat Container */
+        .main-chat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-main);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Top Header */
+        .chat-header {
+            height: 56px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            background: rgba(19, 20, 24, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 10;
+        }
+
+        .model-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 0.82rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-ghost:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border-color: var(--text-muted);
+        }
+
+        /* Chat Messages Area */
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 20%;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            scroll-behavior: smooth;
+        }
+
+        @media (max-width: 1200px) {
+            .messages-container { padding: 24px 10%; }
+        }
+        @media (max-width: 800px) {
+            .messages-container { padding: 20px 16px; }
+            .sidebar { position: absolute; z-index: 50; height: 100%; transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            margin: auto;
+            text-align: center;
+            max-width: 540px;
+            padding: 40px 20px;
+        }
+
+        .empty-logo {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #4D6BFE 0%, #2b45cf 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            color: #fff;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 25px rgba(77, 107, 254, 0.4);
+        }
+
+        .empty-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .empty-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 30px;
+        }
+
+        .suggestions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            text-align: left;
+        }
+
+        .suggestion-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 14px 16px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .suggestion-card:hover {
+            border-color: var(--brand-blue);
+            background: var(--bg-sidebar-hover);
+            transform: translateY(-2px);
+        }
+
+        .suggestion-card h4 {
+            font-size: 0.88rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .suggestion-card p {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        /* Message Bubbles */
+        .message-row {
+            display: flex;
+            gap: 16px;
+            position: relative;
+        }
+
+        .message-row.user {
+            justify-content: flex-end;
+        }
+
+        .avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 15px;
+        }
+
+        .avatar.assistant {
+            background: linear-gradient(135deg, #4D6BFE 0%, #2f44c4 100%);
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(77, 107, 254, 0.3);
+        }
+
+        .avatar.user {
+            background: #3b3e4a;
+            color: #e2e4e9;
+        }
+
+        .message-content {
+            max-width: 85%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message-row.user .message-body {
+            background: var(--brand-blue);
+            color: #fff;
+            padding: 12px 18px;
+            border-radius: 18px 18px 4px 18px;
+            font-size: 0.95rem;
+            line-height: 1.55;
+            word-break: break-word;
+        }
+
+        .message-row.assistant .message-body {
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            line-height: 1.65;
+            word-break: break-word;
+        }
+
+        /* DeepSeek Iconic Thinking Box */
+        .thinking-box {
+            background: var(--bg-thinking);
+            border: 1px solid rgba(77, 107, 254, 0.2);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            margin-bottom: 12px;
+            border-left: 3px solid var(--brand-blue);
+        }
+
+        .thinking-header {
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+            background: rgba(77, 107, 254, 0.05);
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #b4c2ff;
+        }
+
+        .thinking-header:hover {
+            background: rgba(77, 107, 254, 0.09);
+        }
+
+        .thinking-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .thinking-body {
+            padding: 12px 16px;
+            font-size: 0.85rem;
+            color: #a6b0c3;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            border-top: 1px solid rgba(77, 107, 254, 0.1);
+            font-family: 'Inter', sans-serif;
+            background: #14161d;
+        }
+
+        /* Markdown Elements in Output */
+        .message-body pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            margin: 14px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1c1e24;
+            padding: 6px 12px;
+            font-size: 0.76rem;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .code-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .code-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .code-btn:hover {
+            color: #fff;
+            background: #2a2c35;
+        }
+
+        .message-body pre code {
+            display: block;
+            padding: 14px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            color: #e6edf3;
+        }
+
+        .message-body code:not(pre code) {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.86rem;
+            color: #ff9e79;
+        }
+
+        .message-body p { margin-bottom: 10px; }
+        .message-body ul, .message-body ol { margin-left: 20px; margin-bottom: 10px; }
+        .message-body li { margin-bottom: 4px; }
+        .message-body table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 0.9rem; }
+        .message-body th, .message-body td { border: 1px solid var(--border-color); padding: 8px 12px; }
+        .message-body th { background: var(--bg-card); font-weight: 600; }
+
+        /* Message Action Toolbar */
+        .message-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .msg-action-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.15s;
+        }
+
+        .msg-action-btn:hover {
+            color: var(--text-primary);
+            background: var(--bg-card);
+        }
+
+        .download-pill {
+            background: var(--brand-blue-subtle);
+            color: var(--brand-blue);
+            border: 1px solid rgba(77, 107, 254, 0.3);
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+            transition: all 0.2s;
+            margin-top: 6px;
+            margin-right: 6px;
+        }
+
+        .download-pill:hover {
+            background: var(--brand-blue);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+        /* Attached files chips above input */
+        .attachments-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 0 16px 8px;
+        }
+
+        .attachment-chip {
+            background: #282a33;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-size: 0.78rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .attachment-chip i.close-chip {
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            margin-left: 2px;
+        }
+
+        .attachment-chip i.close-chip:hover { color: #ff6b6b; }
+
+        /* DeepSeek Pill Input Box */
+        .input-wrapper {
+            padding: 10px 20% 24px;
+            position: relative;
+        }
+
+        @media (max-width: 1200px) { .input-wrapper { padding: 10px 10% 20px; } }
+        @media (max-width: 800px) { .input-wrapper { padding: 8px 16px 16px; } }
+
+        .input-card {
+            background: var(--bg-input);
+            border: 1px solid var(--bg-input-border);
+            border-radius: var(--radius-lg);
+            padding: 12px 16px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+            transition: border-color 0.2s;
+        }
+
+        .input-card:focus-within {
+            border-color: #4D6BFE;
+            box-shadow: 0 8px 30px rgba(77, 107, 254, 0.15);
+        }
+
+        .chat-textarea {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-size: 0.98rem;
+            resize: none;
+            max-height: 180px;
+            min-height: 48px;
+            line-height: 1.5;
+        }
+
+        .chat-textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        .input-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 4px;
+        }
+
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .toggle-btn.active {
+            background: var(--brand-blue-subtle);
+            color: var(--brand-blue);
+            border-color: rgba(77, 107, 254, 0.4);
+            font-weight: 600;
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 50%;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-btn:hover {
+            color: var(--text-primary);
+            background: var(--bg-sidebar-hover);
+        }
+
+        .send-btn {
+            width: 36px;
+            height: 36px;
+            background: var(--brand-blue);
+            border: none;
+            border-radius: 50%;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .send-btn:disabled {
+            background: #2c2f38;
+            color: #636875;
+            cursor: not-allowed;
+        }
+
+        .send-btn:not(:disabled):hover {
+            background: var(--brand-blue-hover);
+            transform: scale(1.05);
+        }
+
+        .input-hint {
+            text-align: center;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .modal-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            width: 90%;
+            max-width: 500px;
+            padding: 24px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .modal-header h3 { font-size: 1.15rem; font-weight: 600; }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.84rem;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .form-control {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .form-control:focus { border-color: var(--brand-blue); }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 24px;
+        }
+
+        .btn-primary {
+            background: var(--brand-blue);
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:hover { background: var(--brand-blue-hover); }
+
+        /* Loading animation */
+        .loading-dots span {
+            animation: blink 1.4s infinite both;
+            display: inline-block;
+            margin: 0 2px;
+            font-size: 1.2rem;
+            color: var(--brand-blue);
+        }
+        .loading-dots span:nth-child(2) { animation-delay: .2s; }
+        .loading-dots span:nth-child(3) { animation-delay: .4s; }
+
+        @keyframes blink {
+            0% { opacity: .2; }
+            20% { opacity: 1; }
+            100% { opacity: .2; }
+        }
+        /* Game Preview Modal */
+        .game-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.92);
+            backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            flex-direction: column;
+        }
+        .game-modal-bar {
+            width: 90vw;
+            max-width: 960px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            background: #1c1e26;
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            border-radius: 14px 14px 0 0;
+        }
+        .game-modal-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .game-modal-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .game-modal-frame {
+            width: 90vw;
+            max-width: 960px;
+            height: 76vh;
+            border: 1px solid var(--border-color);
+            border-top: none;
+            border-radius: 0 0 14px 14px;
+            background: #000;
+            display: block;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .game-modal-bar, .game-modal-frame {
+            animation: fadeInUp 0.25s ease both;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Game Preview Modal -->
+    <div class="game-modal-overlay" id="gamePreviewModal" onclick="handleGameModalClick(event)">
+        <div class="game-modal-bar">
+            <div class="game-modal-title">
+                <i class="fa-solid fa-gamepad" style="color: #4D6BFE;"></i>
+                <span id="gameModalTitle">Game Preview</span>
+            </div>
+            <div class="game-modal-actions">
+                <a id="gameModalDownloadBtn" href="#" download class="btn-ghost" style="text-decoration: none;">
+                    <i class="fa-solid fa-download"></i> Download
+                </a>
+                <button class="btn-ghost" onclick="closeGameModal()">
+                    <i class="fa-solid fa-xmark"></i> Close
+                </button>
+            </div>
+        </div>
+        <iframe id="gameModalFrame" class="game-modal-frame" src="" allowfullscreen sandbox="allow-scripts allow-same-origin"></iframe>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-box">
+                <div class="logo-icon"><i class="fa-solid fa-brain"></i></div>
+                <span>Kaleb AI</span>
+                <span class="model-tag" id="currentModelTag">Kaleb</span>
+            </div>
+        </div>
+
+        <button class="new-chat-btn" onclick="startNewChat()">
+            <span><i class="fa-solid fa-plus" style="margin-right: 8px;"></i>New chat</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Ctrl + K</span>
+        </button>
+
+        <div class="sidebar-sections">
+            <div>
+                <div class="sidebar-title">
+                    <span>File Vault</span>
+                    <i class="fa-solid fa-folder-open" style="cursor: pointer;" onclick="refreshFilesList()"></i>
+                </div>
+                <div class="file-list" id="sidebarFileList">
+                    <!-- Dynamic files loaded here -->
+                </div>
+            </div>
+
+            <div>
+                <div class="sidebar-title">Recent Chats</div>
+                <div class="chat-list" id="recentChatsList">
+                    <div class="chat-item" onclick="loadChat(0)">
+                        <span class="file-info"><i class="fa-regular fa-message"></i> Current Session</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <button class="settings-btn" onclick="openSettings()">
+                <i class="fa-solid fa-gear"></i> Settings
+            </button>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">v1.0 (Kaleb AI)</span>
+        </div>
+    </aside>
+
+    <!-- Main Chat -->
+    <main class="main-chat">
+        <!-- Header -->
+        <header class="chat-header">
+            <div class="model-selector">
+                <i class="fa-solid fa-microchip" style="color: var(--brand-blue);"></i>
+                <span id="headerModelName">Kaleb AI (20B Reasoning Engine)</span>
+            </div>
+            <div class="header-actions">
+                <button class="btn-ghost" onclick="openMergeModal()" title="Merge multiple Minecraft mod or datapack ZIPs into one">
+                    <i class="fa-solid fa-code-merge" style="color: var(--brand-blue);"></i> Merge Mods
+                </button>
+                <button class="btn-ghost" onclick="exportCurrentChat()">
+                    <i class="fa-solid fa-download"></i> Export Chat
+                </button>
+                <button class="btn-ghost" onclick="startNewChat()">
+                    <i class="fa-solid fa-trash-can"></i> Clear
+                </button>
+            </div>
+        </header>
+
+        <!-- Messages Area -->
+        <div class="messages-container" id="messagesContainer">
+            <!-- Empty state default -->
+            <div class="empty-state" id="emptyState">
+                <div class="empty-logo"><i class="fa-solid fa-brain"></i></div>
+                <h1 class="empty-title">Hi, I'm Kaleb AI.</h1>
+                <p class="empty-subtitle">How can I help you today? You can attach files to analyze or ask me to generate downloadable code & files.</p>
+                <div class="suggestions-grid">
+                    <div class="suggestion-card" onclick="useSuggestion('Make a complete, playable Space Invaders retro arcade game in HTML5 Canvas with player ship, shooting laser sounds, moving alien rows, scoring, and game over screen.')">
+                        <h4><i class="fa-solid fa-gamepad" style="color: #4D6BFE;"></i> Space Arcade Game</h4>
+                        <p>Generate a complete playable game you can play & download.</p>
+                    </div>
+                    <div class="suggestion-card" onclick="useSuggestion('Make a complete, playable Flappy Bird game in HTML5 Canvas with smooth physics, flapping sound effects, pipe obstacles, and high score tracking.')">
+                        <h4><i class="fa-solid fa-ghost" style="color: #ec4899;"></i> Flappy Bird Game</h4>
+                        <p>Generate a ready-to-play offline game file for PC.</p>
+                    </div>
+                    <div class="suggestion-card" onclick="useSuggestion('Make a working Minecraft 1.21 Data Pack that gives the player Super Speed and Jump Boost when holding an Iron Sword. Include pack.mcmeta and tick functions.')">
+                        <h4><i class="fa-solid fa-cube" style="color: #10b981;"></i> Minecraft Data Pack</h4>
+                        <p>Generate a working .zip datapack for your world.</p>
+                    </div>
+                    <div class="suggestion-card" onclick="useSuggestion('Create an epic Minecraft player skin of a Dark Knight with glowing purple eyes and armor.')">
+                        <h4><i class="fa-solid fa-shirt" style="color: #3b82f6;"></i> Minecraft Skin</h4>
+                        <p>Generate a 64x64 PNG player skin ready for Minecraft.</p>
+                    </div>
+                    <div class="suggestion-card" onclick="useSuggestion('Merge two Minecraft mod concepts: a Double-Jump Boots mod and a Fire-Resistance Ring mod into one unified Fabric mod project.')">
+                        <h4><i class="fa-solid fa-code-merge" style="color: #f59e0b;"></i> Merge Mods</h4>
+                        <p>Combine multiple mod mechanics into one .zip.</p>
+                    </div>
+                    <div class="suggestion-card" onclick="useSuggestion('Create a complete Minecraft Fabric Mod in Java that adds an Emerald Sword with custom damage.')">
+                        <h4><i class="fa-solid fa-gears" style="color: #8b5cf6;"></i> Fabric Mod</h4>
+                        <p>Generate mod code, fabric.mod.json & build.gradle.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-wrapper">
+            <!-- Attached files chips preview -->
+            <div class="attachments-preview" id="attachmentsPreview"></div>
+
+            <div class="input-card">
+                <textarea 
+                    id="chatInput" 
+                    class="chat-textarea" 
+                    placeholder="Message Kaleb AI... (Shift+Enter for newline)"
+                    rows="1"
+                    onkeydown="handleKeyDown(event)"
+                    oninput="autoResizeTextarea(this)"
+                ></textarea>
+
+                <div class="input-toolbar">
+                    <div class="toolbar-left">
+                        <button class="icon-btn" title="Attach file" onclick="document.getElementById('fileUploadInput').click()">
+                            <i class="fa-solid fa-paperclip"></i>
+                        </button>
+                        <input type="file" id="fileUploadInput" multiple style="display: none;" onchange="handleFileUpload(event)">
+
+                        <!-- DeepThink Toggle -->
+                        <button class="toggle-btn active" id="deepThinkBtn" onclick="toggleDeepThink()" title="Toggle DeepSeek-R1 reasoning process">
+                            <i class="fa-solid fa-brain"></i> DeepThink (R1)
+                        </button>
+
+                        <!-- Web Search Toggle -->
+                        <button class="toggle-btn" id="webSearchBtn" onclick="toggleWebSearch()" title="Search the web">
+                            <i class="fa-solid fa-globe"></i> Search
+                        </button>
+                    </div>
+
+                    <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled title="Send message">
+                        <i class="fa-solid fa-arrow-up"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="input-hint">
+                Kaleb AI may provide generated responses, code, and Minecraft packs. Always review important outputs.
+            </div>
+        </div>
+    </main>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Kaleb AI Settings</h3>
+                <button class="icon-btn" onclick="closeSettings()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="form-group">
+                <label>AI Reasoning Engine</label>
+                <select class="form-control" id="modelModeSelect" onchange="onModelModeChange()">
+                    <option value="free-reasoning">Kaleb AI 20B Reasoning Engine (100% Free - Default)</option>
+                    <option value="groq">Kaleb AI on Groq Cloud: 70B Engine (Free API Key from console.groq.com)</option>
+                    <option value="deepseek">Kaleb AI on Cloud API: 671B Engine (Key from platform.deepseek.com)</option>
+                </select>
+            </div>
+            <div class="form-group" id="apiKeyGroup" style="display: none;">
+                <label id="apiKeyLabel">API Key</label>
+                <input type="password" class="form-control" id="apiKeyInput" placeholder="Enter API key...">
+                <small id="apiKeyHint" style="color: var(--text-muted); font-size: 0.75rem; display: block; margin-top: 4px;">
+                    Enter your API key to activate this cloud engine.
+                </small>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-ghost" onclick="closeSettings()">Cancel</button>
+                <button class="btn-primary" onclick="saveSettings()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Merge Mods Modal -->
+    <div class="modal-overlay" id="mergeModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-code-merge" style="color: var(--brand-blue); margin-right: 8px;"></i> Merge Minecraft Mods</h3>
+                <button class="icon-btn" onclick="closeMergeModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 14px;">
+                Select 2 or more uploaded or generated mod / data pack files (.zip or .jar) to combine into a unified, conflict-free package:
+            </p>
+            <div id="mergeFilesList" style="max-height: 220px; overflow-y: auto; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 10px; margin-bottom: 16px;">
+                <!-- Dynamically populated -->
+            </div>
+            <div style="font-size: 0.76rem; color: var(--text-muted); margin-bottom: 14px; line-height: 1.5;">
+                <i class="fa-solid fa-circle-info" style="color: var(--brand-blue);"></i> Automatically merges function tags (<code>tick.json</code>), lang dictionaries (<code>en_us.json</code>), <code>fabric.mod.json</code> entrypoints, and assets.
+            </div>
+            <div class="modal-footer">
+                <button class="btn-ghost" onclick="closeMergeModal()">Cancel</button>
+                <button class="btn-primary" onclick="submitMergeMods()" id="btnSubmitMerge">
+                    <i class="fa-solid fa-file-zipper"></i> Merge into 1 Pack (.zip)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let conversation = [];
+        let attachedFiles = [];
+        let attachedFileDetails = []; // [{ name, size, text, dataUrl }]
+        let isDeepThink = true;
+        let isWebSearch = false;
+        let isGenerating = false;
+        let apiKey = localStorage.getItem('deepseek_api_key') || '';
+        let modelMode = localStorage.getItem('deepseek_model_mode') || 'free-reasoning';
+        if (modelMode === 'local' || modelMode === 'api') modelMode = 'free-reasoning';
+
+        // Dual-mode server detection
+        const SERVER_ORIGIN = window.location.protocol.startsWith('http') ? window.location.origin : 'http://localhost:3000';
+        let serverAvailable = false;
+
+        // Client-side Vault persistence
+        let clientVault = [];
+        try {
+            clientVault = JSON.parse(localStorage.getItem('kaleb_client_vault') || '[]');
+        } catch (e) {
+            clientVault = [];
+        }
+
+        function saveClientVault() {
+            try {
+                localStorage.setItem('kaleb_client_vault', JSON.stringify(clientVault.slice(0, 50)));
+            } catch (e) {}
+        }
+
+        async function checkServer() {
+            try {
+                const res = await fetch(`${SERVER_ORIGIN}/api/files`, { method: 'GET', signal: AbortSignal.timeout(1200) });
+                if (res.ok) {
+                    serverAvailable = true;
+                    return true;
+                }
+            } catch (e) {
+                serverAvailable = false;
+            }
+            return false;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            document.getElementById('apiKeyInput').value = apiKey;
+            document.getElementById('modelModeSelect').value = modelMode;
+            onModelModeChange();
+            updateModelModeUI();
+
+            await checkServer();
+            refreshFilesList();
+
+            const input = document.getElementById('chatInput');
+            input.addEventListener('input', () => {
+                document.getElementById('sendBtn').disabled = input.value.trim() === '' && attachedFiles.length === 0;
+            });
+        });
+
+        function autoResizeTextarea(el) {
+            el.style.height = 'auto';
+            el.style.height = Math.min(el.scrollHeight, 180) + 'px';
+        }
+
+        function toggleDeepThink() {
+            isDeepThink = !isDeepThink;
+            document.getElementById('deepThinkBtn').classList.toggle('active', isDeepThink);
+        }
+
+        function toggleWebSearch() {
+            isWebSearch = !isWebSearch;
+            document.getElementById('webSearchBtn').classList.toggle('active', isWebSearch);
+        }
+
+        function useSuggestion(text) {
+            document.getElementById('chatInput').value = text;
+            autoResizeTextarea(document.getElementById('chatInput'));
+            document.getElementById('sendBtn').disabled = false;
+            sendMessage();
+        }
+
+        function handleKeyDown(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (!document.getElementById('sendBtn').disabled) {
+                    sendMessage();
+                }
+            }
+        }
+
+        // File Upload
+        async function handleFileUpload(event) {
+            const files = event.target.files;
+            if (!files.length) return;
+
+            await checkServer();
+
+            // Client-side reading
+            for (let i = 0; i < files.length; i++) {
+                const f = files[i];
+                if (!attachedFiles.includes(f.name)) {
+                    attachedFiles.push(f.name);
+                }
+
+                const fileObj = { name: f.name, size: f.size, text: '', dataUrl: '' };
+                const isText = /\.(txt|md|py|js|json|html|css|mcfunction|mcmeta|java|gradle|properties|bat|sh|xml|yml|yaml|csv)$/i.test(f.name) || f.size < 500000;
+
+                try {
+                    if (isText) {
+                        fileObj.text = await f.text();
+                    }
+                    const dataUrl = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = () => resolve('');
+                        reader.readAsDataURL(f);
+                    });
+                    fileObj.dataUrl = dataUrl;
+                } catch (e) {}
+
+                attachedFileDetails.push(fileObj);
+
+                // Add to client vault
+                if (!clientVault.some(v => v.name === f.name)) {
+                    clientVault.unshift({
+                        name: f.name,
+                        size: f.size,
+                        mtime: Date.now(),
+                        type: 'uploads',
+                        download_url: fileObj.dataUrl || '#'
+                    });
+                }
+            }
+            saveClientVault();
+
+            // If server is available, also upload to server
+            if (serverAvailable) {
+                try {
+                    const formData = new FormData();
+                    for (let i = 0; i < files.length; i++) formData.append('file', files[i]);
+                    await fetch(`${SERVER_ORIGIN}/api/upload`, { method: 'POST', body: formData });
+                } catch (err) {
+                    console.warn('Server upload failed, using client file:', err);
+                }
+            }
+
+            renderAttachmentChips();
+            refreshFilesList();
+            document.getElementById('sendBtn').disabled = false;
+            event.target.value = '';
+        }
+
+        function renderAttachmentChips() {
+            const container = document.getElementById('attachmentsPreview');
+            container.innerHTML = '';
+            attachedFiles.forEach((fname, idx) => {
+                const chip = document.createElement('div');
+                chip.className = 'attachment-chip';
+                chip.innerHTML = `
+                    <i class="fa-solid fa-file-code"></i>
+                    <span>${escapeHtml(fname)}</span>
+                    <i class="fa-solid fa-xmark close-chip" onclick="removeAttachment(${idx})"></i>
+                `;
+                container.appendChild(chip);
+            });
+        }
+
+        function removeAttachment(idx) {
+            const removed = attachedFiles.splice(idx, 1)[0];
+            attachedFileDetails = attachedFileDetails.filter(f => f.name !== removed);
+            renderAttachmentChips();
+            const input = document.getElementById('chatInput');
+            document.getElementById('sendBtn').disabled = input.value.trim() === '' && attachedFiles.length === 0;
+        }
+
+        // File Vault Sidebar
+        async function refreshFilesList() {
+            const container = document.getElementById('sidebarFileList');
+            container.innerHTML = '';
+
+            let serverFiles = [];
+            if (serverAvailable) {
+                try {
+                    const resp = await fetch(`${SERVER_ORIGIN}/api/files`);
+                    const data = await resp.json();
+                    serverFiles = data.files || [];
+                } catch (e) {
+                    serverAvailable = false;
+                }
+            }
+
+            // Merge server and client files, avoiding duplicates
+            const allFiles = [...serverFiles];
+            clientVault.forEach(cv => {
+                if (!allFiles.some(f => f.name === cv.name)) {
+                    allFiles.push(cv);
+                }
+            });
+
+            if (allFiles.length === 0) {
+                container.innerHTML = '<span style="font-size: 0.78rem; color: var(--text-muted); padding: 4px 8px;">No files stored yet.</span>';
+                return;
+            }
+
+            allFiles.forEach(f => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                const iconClass = f.type === 'generated' ? 'fa-solid fa-wand-magic-sparkles' : 'fa-solid fa-file';
+                const iconColor = f.type === 'generated' ? 'color: var(--brand-blue);' : '';
+                const sizeStr = f.size > 1024 ? (f.size / 1024).toFixed(1) + ' KB' : f.size + ' B';
+
+                const dlUrl = f.download_url && f.download_url.startsWith('/') ? `${SERVER_ORIGIN}${f.download_url}` : (f.download_url || '#');
+
+                item.innerHTML = `
+                    <div class="file-info" title="${escapeHtml(f.name)} (${sizeStr})">
+                        <i class="${iconClass}" style="${iconColor}"></i>
+                        <span>${escapeHtml(f.name)}</span>
+                    </div>
+                    <div class="file-actions">
+                        <a href="${dlUrl}" class="action-icon" download="${escapeHtml(f.name)}" title="Download file"><i class="fa-solid fa-download"></i></a>
+                        <i class="fa-solid fa-trash action-icon" onclick="deleteVaultFile('${f.type === 'generated' ? 'generated' : 'uploads'}', '${escapeHtml(f.name)}', event)" title="Delete file"></i>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        async function deleteVaultFile(folder, filename, event) {
+            event.stopPropagation();
+            if (!confirm(`Delete ${filename}?`)) return;
+
+            // Remove from client vault
+            clientVault = clientVault.filter(f => f.name !== filename);
+            saveClientVault();
+
+            if (serverAvailable) {
+                try {
+                    await fetch(`${SERVER_ORIGIN}/api/delete_file`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ folder, filename })
+                    });
+                } catch (err) {}
+            }
+            refreshFilesList();
+        }
+
+        // Built-in offline game templates
+        const invadersGame = () => `<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Space Invaders</title>
+<style>html,body{margin:0;height:100%;background:#05060c;display:flex;align-items:center;justify-content:center;overflow:hidden}
+canvas{background:#05060c;border:2px solid #1c2b4a;border-radius:12px;box-shadow:0 0 50px rgba(0,170,255,.25);max-width:98vw;max-height:96vh}</style>
+</head><body><canvas id="c" width="640" height="480"></canvas><script>
+(function(){
+var c=document.getElementById('c'),x=c.getContext('2d'),W=c.width,H=c.height;
+var keys={},bullets=[],aliens=[],dir=1,score=0,lives=3,over=false,win=false,cd=0,parts=[],acc=0,ac=null;
+var player={x:W/2-18,y:H-40,w:36,h:18,sp:5};
+function beep(f,d,t,v){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+var o=ac.createOscillator(),g=ac.createGain();o.type=t||'square';o.frequency.value=f;
+g.gain.setValueAtTime(v||.05,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);
+o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d);}catch(e){}}
+function reset(){aliens=[];for(var r=0;r<5;r++)for(var q=0;q<9;q++)
+aliens.push({x:70+q*52,y:60+r*40,w:32,h:24,alive:true,row:r});
+bullets=[];parts=[];score=0;lives=3;over=false;win=false;dir=1;player.x=W/2-18;cd=0;}
+reset();
+addEventListener('keydown',function(e){keys[e.key]=true;if(e.key===' '){e.preventDefault();if(over)reset();}});
+addEventListener('keyup',function(e){keys[e.key]=false;});
+var last=performance.now();
+function loop(now){var dt=Math.min(34,now-last);last=now;if(!over)update(dt);
+parts.forEach(function(p){p.x+=p.vx;p.y+=p.vy;p.l-=.035;});parts=parts.filter(function(p){return p.l>0;});
+draw(now);requestAnimationFrame(loop);}
+function update(dt){
+if(keys.ArrowLeft||keys.a)player.x-=player.sp*dt/16;
+if(keys.ArrowRight||keys.d)player.x+=player.sp*dt/16;
+player.x=Math.max(0,Math.min(W-player.w,player.x));
+cd-=dt;
+if((keys[' ']||keys.ArrowUp||keys.w)&&cd<=0){
+bullets.push({x:player.x+player.w/2-2,y:player.y-12,w:4,h:12,vy:-9});
+cd=200;beep(880,.06,'square',.035);}
+var edge=false,alive=0,low=0;
+aliens.forEach(function(a){if(!a.alive)return;alive++;low=Math.max(low,a.y+a.h);
+a.x+=.55*dir*dt/16;if(a.x<10||a.x+a.w>W-10)edge=true;});
+if(edge){dir*=-1;aliens.forEach(function(a){a.y+=14;});}
+acc+=dt;if(acc>620){acc=0;beep(150,.05,'square',.02);}
+if(alive===0){over=true;win=true;beep(1200,.3,'sine',.08);}
+if(low>=player.y-4){lives=0;over=true;beep(90,.6,'sawtooth',.1);}
+bullets.forEach(function(b){b.y+=b.vy*dt/16;});
+bullets=bullets.filter(function(b){return b.y>-24&&b.y<H+24;});
+bullets.forEach(function(b){aliens.forEach(function(a){
+if(a.alive&&b.x<a.x+a.w&&b.x+b.w>a.x&&b.y<a.y+a.h&&b.y+b.h>a.y){
+a.alive=false;b.dead=true;score+=10*(5-a.row);beep(300,.08,'sawtooth',.05);
+for(var i=0;i<10;i++)parts.push({x:a.x+a.w/2,y:a.y+a.h/2,vx:(Math.random()-.5)*5,vy:(Math.random()-.5)*5,l:1});}});});
+bullets=bullets.filter(function(b){return !b.dead;});
+if(Math.random()<.013){var lv=aliens.filter(function(a){return a.alive;});
+if(lv.length){var s=lv[(Math.random()*lv.length)|0];
+bullets.push({x:s.x+s.w/2-2,y:s.y+s.h,w:4,h:12,vy:5,enemy:true});}}
+bullets.forEach(function(b){
+if(b.enemy&&b.x<player.x+player.w&&b.x+b.w>player.x&&b.y+b.h>player.y&&b.y<player.y+player.h){
+b.dead=true;lives--;beep(140,.25,'sawtooth',.08);
+if(lives<=0){over=true;beep(90,.6,'sawtooth',.1);}}});
+bullets=bullets.filter(function(b){return !b.dead;});}
+function draw(now){
+x.fillStyle='#05060c';x.fillRect(0,0,W,H);
+x.fillStyle='#16203a';
+for(var i=0;i<70;i++){var sx=(i*97)%W,sy=(i*53+now*.02*(1+i%4))%H;x.fillRect(sx,sy,2,2);}
+aliens.forEach(function(a){if(!a.alive)return;
+x.fillStyle=a.row<2?'#ff5c8a':a.row<4?'#ffd166':'#66f0ff';
+x.fillRect(a.x,a.y,a.w,a.h);x.fillStyle='#05060c';
+x.fillRect(a.x+6,a.y+8,6,6);x.fillRect(a.x+a.w-12,a.y+8,6,6);});
+x.fillStyle='#7cf5a0';x.fillRect(player.x,player.y,player.w,player.h);
+x.fillRect(player.x+player.w/2-3,player.y-8,6,10);
+bullets.forEach(function(b){x.fillStyle=b.enemy?'#ff6b6b':'#ffe066';x.fillRect(b.x,b.y,b.w,b.h);});
+parts.forEach(function(p){x.globalAlpha=Math.max(0,p.l);x.fillStyle='#fff';x.fillRect(p.x,p.y,3,3);});
+x.globalAlpha=1;x.fillStyle='#7fd4ff';x.font='bold 14px monospace';x.textAlign='left';
+x.fillText('SCORE '+score,14,26);x.textAlign='right';
+var hs='';for(var h=0;h<Math.max(0,lives);h++)hs+='\\u2665';
+x.fillText('LIVES '+hs,W-14,26);
+if(over){x.fillStyle='rgba(0,0,0,.75)';x.fillRect(0,0,W,H);x.textAlign='center';
+x.fillStyle=win?'#7cf5a0':'#ff6b6b';x.font='bold 46px monospace';
+x.fillText(win?'YOU WIN!':'GAME OVER',W/2,H/2-16);
+x.fillStyle='#9ff';x.font='18px monospace';x.fillText('Score: '+score,W/2,H/2+26);
+x.fillText('Press SPACE to play again',W/2,H/2+60);}}
+requestAnimationFrame(loop);})();
+<\/script></body></html>`;
+
+        const flappyGame = () => `<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Flappy Bird</title>
+<style>html,body{margin:0;height:100%;background:#0d1b2a;display:flex;align-items:center;justify-content:center}
+canvas{border:2px solid #24405e;border-radius:12px;box-shadow:0 0 50px rgba(80,200,255,.2);max-height:96vh}</style>
+</head><body><canvas id="c" width="420" height="620"></canvas><script>
+(function(){
+var c=document.getElementById('c'),x=c.getContext('2d'),W=c.width,H=c.height;
+var bird,pipes,score,best=0,state,ac=null;
+try{best=+(localStorage.getItem('flappy_best')||0);}catch(e){}
+function beep(f,d,t,v){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+var o=ac.createOscillator(),g=ac.createGain();o.type=t||'square';o.frequency.value=f;
+g.gain.setValueAtTime(v||.06,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);
+o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d);}catch(e){}}
+function addPipe(px){var mn=60,mx=H-230;var top=mn+Math.random()*(mx-mn);
+pipes.push({x:px,top:top,gap:155,w:64,passed:false});}
+function reset(){bird={x:110,y:H/2,r:16,vy:0,rot:0};pipes=[];score=0;state='ready';
+for(var i=0;i<4;i++)addPipe(320+i*200);}
+function flap(){if(state==='over'){reset();return;}
+if(state==='ready')state='play';bird.vy=-7.4;beep(700,.07,'square',.05);}
+addEventListener('keydown',function(e){if(e.key===' '||e.key==='ArrowUp'){e.preventDefault();flap();}});
+c.addEventListener('mousedown',flap);
+c.addEventListener('touchstart',function(e){e.preventDefault();flap();},{passive:false});
+function die(){if(state==='over')return;state='over';beep(200,.25,'sawtooth',.08);
+if(score>best){best=score;try{localStorage.setItem('flappy_best',best);}catch(e){}}}
+var last=performance.now();
+function loop(now){var dt=Math.min(34,now-last);last=now;var s=dt/16;
+if(state==='ready'){bird.y=H/2+Math.sin(now/300)*10;bird.rot=0;}
+if(state==='play'){bird.vy+=.52*s;bird.y+=bird.vy*s;
+bird.rot=Math.max(-.6,Math.min(1.2,bird.vy*.06));
+pipes.forEach(function(p){p.x-=3.1*s;});
+if(pipes[pipes.length-1].x<W-160)addPipe(pipes[pipes.length-1].x+200);
+pipes=pipes.filter(function(p){return p.x+p.w>-20;});
+pipes.forEach(function(p){
+if(!p.passed&&p.x+p.w<bird.x){p.passed=true;score++;beep(1000,.07,'square',.05);}
+var ix=bird.x+bird.r>p.x&&bird.x-bird.r<p.x+p.w;
+if(ix&&(bird.y-bird.r<p.top||bird.y+bird.r>p.top+p.gap))die();});
+if(bird.y+bird.r>H-70||bird.y-bird.r<0)die();}
+if(state==='over'){bird.vy+=.6*s;bird.y+=bird.vy*s;
+if(bird.y+bird.r>H-70){bird.y=H-70-bird.r;bird.vy=0;}}
+draw(now);requestAnimationFrame(loop);}
+function draw(now){
+var g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#0b1a2b');g.addColorStop(1,'#123049');
+x.fillStyle=g;x.fillRect(0,0,W,H);x.fillStyle='#1c3d5a';
+for(var i=0;i<20;i++){var sx=(i*83)%W,sy=(i*47+now*.02)%H;x.fillRect(sx,sy,2,2);}
+pipes.forEach(function(p){x.fillStyle='#2f9e44';x.fillRect(p.x,0,p.w,p.top);
+x.fillRect(p.x,p.top+p.gap,p.w,H-p.top-p.gap);x.fillStyle='#51cf66';
+x.fillRect(p.x-4,p.top-20,p.w+8,20);x.fillRect(p.x-4,p.top+p.gap,p.w+8,20);
+x.fillStyle='#1f7a32';x.fillRect(p.x+p.w-12,0,12,p.top);
+x.fillRect(p.x+p.w-12,p.top+p.gap,12,H-p.top-p.gap);});
+x.fillStyle='#2b2b2b';x.fillRect(0,H-70,W,70);x.fillStyle='#3d3d3d';
+for(var j=0;j<W;j+=24)x.fillRect(j,H-70,12,10);
+x.save();x.translate(bird.x,bird.y);x.rotate(bird.rot);
+x.fillStyle='#ffd43b';x.beginPath();x.arc(0,0,bird.r,0,7);x.fill();
+x.fillStyle='#f59f00';x.beginPath();x.moveTo(bird.r-2,0);x.lineTo(bird.r+10,4);x.lineTo(bird.r-2,8);x.fill();
+x.fillStyle='#fff';x.beginPath();x.arc(5,-5,5,0,7);x.fill();
+x.fillStyle='#000';x.beginPath();x.arc(6,-5,2.4,0,7);x.fill();x.restore();
+x.fillStyle='#fff';x.font='bold 42px monospace';x.textAlign='center';
+x.strokeStyle='#000';x.lineWidth=5;x.strokeText(score,W/2,80);x.fillText(score,W/2,80);
+if(state==='ready'){x.fillStyle='rgba(0,0,0,.45)';x.fillRect(0,H/2-90,W,180);
+x.fillStyle='#fff';x.font='bold 26px monospace';x.fillText('FLAPPY BIRD',W/2,H/2-30);
+x.font='15px monospace';x.fillText('Click / Space to flap',W/2,H/2+10);
+x.fillText('Best: '+best,W/2,H/2+40);}
+if(state==='over'){x.fillStyle='rgba(0,0,0,.7)';x.fillRect(0,0,W,H);
+x.fillStyle='#ff6b6b';x.font='bold 40px monospace';x.fillText('GAME OVER',W/2,H/2-40);
+x.fillStyle='#fff';x.font='20px monospace';x.fillText('Score: '+score,W/2,H/2+4);
+x.fillText('Best: '+best,W/2,H/2+34);x.font='15px monospace';x.fillStyle='#9ff';
+x.fillText('Click / Space to retry',W/2,H/2+76);}}
+reset();requestAnimationFrame(loop);})();
+<\/script></body></html>`;
+
+        const snakeGame = () => `<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Snake</title>
+<style>html,body{margin:0;height:100%;background:#07120c;display:flex;align-items:center;justify-content:center}
+canvas{border:2px solid #1e5c37;border-radius:12px;box-shadow:0 0 50px rgba(60,255,140,.18);max-width:96vw;max-height:96vh}</style>
+</head><body><canvas id="c" width="600" height="600"></canvas><script>
+(function(){
+var c=document.getElementById('c'),x=c.getContext('2d');
+var N=24,S=600/N,snake,dir,nextDir,food,score,best=0,dead,speed,acc,last,ac=null;
+try{best=+(localStorage.getItem('snake_best')||0);}catch(e){}
+function beep(f,d,t,v){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+var o=ac.createOscillator(),g=ac.createGain();o.type=t||'square';o.frequency.value=f;
+g.gain.setValueAtTime(v||.06,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);
+o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d);}catch(e){}}
+function placeFood(){while(true){var f={x:(Math.random()*N)|0,y:(Math.random()*N)|0};
+if(!snake.some(function(s){return s.x===f.x&&s.y===f.y;})){food=f;return;}}}
+function reset(){snake=[{x:11,y:12},{x:10,y:12},{x:9,y:12}];
+dir={x:1,y:0};nextDir={x:1,y:0};score=0;dead=false;speed=150;acc=0;placeFood();}
+addEventListener('keydown',function(e){var k=e.key;
+if(k==='ArrowUp'||k==='w'){if(dir.y!==1)nextDir={x:0,y:-1};}
+else if(k==='ArrowDown'||k==='s'){if(dir.y!==-1)nextDir={x:0,y:1};}
+else if(k==='ArrowLeft'||k==='a'){if(dir.x!==1)nextDir={x:-1,y:0};}
+else if(k==='ArrowRight'||k==='d'){if(dir.x!==-1)nextDir={x:1,y:0};}
+else if(k===' '&&dead){reset();}
+if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].indexOf(k)>=0)e.preventDefault();});
+function step(){dir=nextDir;
+var head={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
+if(head.x<0||head.y<0||head.x>=N||head.y>=N||
+snake.some(function(s){return s.x===head.x&&s.y===head.y;})){
+dead=true;beep(120,.4,'sawtooth',.09);
+if(score>best){best=score;try{localStorage.setItem('snake_best',best);}catch(e){}}return;}
+snake.unshift(head);
+if(head.x===food.x&&head.y===food.y){score+=10;beep(900,.07,'square',.05);
+placeFood();speed=Math.max(60,speed-4);}else{snake.pop();}}
+last=performance.now();
+function loop(now){var dt=now-last;last=now;
+if(!dead){acc+=dt;if(acc>=speed){acc=0;step();}}
+draw();requestAnimationFrame(loop);}
+function draw(){x.fillStyle='#07120c';x.fillRect(0,0,600,600);
+x.strokeStyle='rgba(60,255,140,.07)';x.lineWidth=1;
+for(var i=1;i<N;i++){x.beginPath();x.moveTo(i*S,0);x.lineTo(i*S,600);x.stroke();
+x.beginPath();x.moveTo(0,i*S);x.lineTo(600,i*S);x.stroke();}
+x.fillStyle='#ff4d6d';x.beginPath();x.arc(food.x*S+S/2,food.y*S+S/2,S/2-3,0,7);x.fill();
+snake.forEach(function(s,i){x.fillStyle=i===0?'#7cf5a0':'#2f9e44';
+x.fillRect(s.x*S+2,s.y*S+2,S-4,S-4);});
+x.fillStyle='#eafff3';x.font='bold 16px monospace';x.textAlign='left';
+x.fillText('SCORE '+score,14,26);x.textAlign='right';x.fillText('BEST '+best,586,26);
+if(dead){x.fillStyle='rgba(0,0,0,.75)';x.fillRect(0,0,600,600);x.textAlign='center';
+x.fillStyle='#ff6b6b';x.font='bold 44px monospace';x.fillText('GAME OVER',300,290);
+x.fillStyle='#eafff3';x.font='20px monospace';x.fillText('Score: '+score,300,336);
+x.font='15px monospace';x.fillStyle='#9ff';x.fillText('Press SPACE to restart',300,376);}}
+reset();requestAnimationFrame(loop);})();
+<\/script></body></html>`;
+
+        const pongGame = () => `<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Pong</title>
+<style>html,body{margin:0;height:100%;background:#0a0c14;display:flex;align-items:center;justify-content:center;overflow:hidden}
+canvas{border:2px solid #2a3550;border-radius:12px;box-shadow:0 0 50px rgba(77,107,254,.25);max-width:98vw;max-height:96vh}</style>
+</head><body><canvas id="c" width="700" height="460"></canvas><script>
+(function(){
+var c=document.getElementById('c'),x=c.getContext('2d'),W=c.width,H=c.height;
+var p1={y:H/2-40,w:12,h:80,score:0,sp:6},p2={y:H/2-40,w:12,h:80,score:0,sp:4.6};
+var ball={x:W/2,y:H/2,vx:5,vy:3,r:8};
+var keys={},over=false,winner='',ac=null;
+function beep(f,d,t,v){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+var o=ac.createOscillator(),g=ac.createGain();o.type=t||'square';o.frequency.value=f;
+g.gain.setValueAtTime(v||.05,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);
+o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d);}catch(e){}}
+function resetBall(dir){ball.x=W/2;ball.y=H/2;ball.vx=(dir||1)*5;ball.vy=(Math.random()-.5)*6;}
+function resetGame(){p1.score=0;p2.score=0;over=false;winner='';resetBall();}
+resetGame();
+addEventListener('keydown',function(e){keys[e.key]=true;if(e.key===' '&&over)resetGame();});
+addEventListener('keyup',function(e){keys[e.key]=false;});
+c.addEventListener('mousemove',function(e){var r=c.getBoundingClientRect();p1.y=e.clientY-r.top-p1.h/2;});
+function update(){
+if(over)return;
+if(keys.ArrowUp||keys.w)p1.y-=p1.sp;
+if(keys.ArrowDown||keys.s)p1.y+=p1.sp;
+p1.y=Math.max(0,Math.min(H-p1.h,p1.y));
+var target=ball.y-p2.h/2;
+if(p2.y<target-4)p2.y+=p2.sp;else if(p2.y>target+4)p2.y-=p2.sp;
+p2.y=Math.max(0,Math.min(H-p2.h,p2.y));
+ball.x+=ball.vx;ball.y+=ball.vy;
+if(ball.y-ball.r<0){ball.y=ball.r;ball.vy*=-1;beep(500,.04);}
+if(ball.y+ball.r>H){ball.y=H-ball.r;ball.vy*=-1;beep(500,.04);}
+if(ball.x-ball.r<32&&ball.y>p1.y&&ball.y<p1.y+p1.h&&ball.vx<0){
+ball.vx*=-1.08;ball.vy+=(ball.y-(p1.y+p1.h/2))*.18;beep(700,.06,'square',.06);}
+if(ball.x+ball.r>W-32&&ball.y>p2.y&&ball.y<p2.y+p2.h&&ball.vx>0){
+ball.vx*=-1.08;ball.vy+=(ball.y-(p2.y+p2.h/2))*.18;beep(650,.06,'square',.06);}
+if(ball.x<0){p2.score++;beep(220,.2,'sawtooth',.08);if(p2.score>=7){over=true;winner='COMPUTER';}else resetBall(1);}
+if(ball.x>W){p1.score++;beep(950,.15,'square',.08);if(p1.score>=7){over=true;winner='PLAYER';}else resetBall(-1);}}
+function draw(){
+x.fillStyle='#0a0c14';x.fillRect(0,0,W,H);
+x.strokeStyle='rgba(255,255,255,.12)';x.setLineDash([8,8]);x.beginPath();x.moveTo(W/2,0);x.lineTo(W/2,H);x.stroke();x.setLineDash([]);
+x.fillStyle='#4D6BFE';x.fillRect(20,p1.y,p1.w,p1.h);
+x.fillStyle='#ff5c8a';x.fillRect(W-32,p2.y,p2.w,p2.h);
+x.fillStyle='#fff';x.beginPath();x.arc(ball.x,ball.y,ball.r,0,7);x.fill();
+x.font='bold 40px monospace';x.fillStyle='#4D6BFE';x.textAlign='center';x.fillText(p1.score,W/2-60,56);
+x.fillStyle='#ff5c8a';x.fillText(p2.score,W/2+60,56);
+if(over){x.fillStyle='rgba(0,0,0,.75)';x.fillRect(0,0,W,H);x.fillStyle='#fff';x.font='bold 42px monospace';
+x.fillText(winner+' WINS!',W/2,H/2-10);x.font='16px monospace';x.fillStyle='#7fd4ff';x.fillText('Press SPACE to play again',W/2,H/2+36);}}
+function loop(){update();draw();requestAnimationFrame(loop);}
+loop();})();
+<\/script></body></html>`;
+
+        const breakoutGame = () => `<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Breakout</title>
+<style>html,body{margin:0;height:100%;background:#0e1017;display:flex;align-items:center;justify-content:center;overflow:hidden}
+canvas{border:2px solid #232738;border-radius:12px;box-shadow:0 0 50px rgba(255,100,150,.2);max-width:98vw;max-height:96vh}</style>
+</head><body><canvas id="c" width="600" height="500"></canvas><script>
+(function(){
+var c=document.getElementById('c'),x=c.getContext('2d'),W=c.width,H=c.height;
+var pad={x:W/2-45,y:H-30,w:90,h:12,sp:7},ball={x:W/2,y:H-50,vx:4,vy:-4,r:6};
+var bricks=[],rows=5,cols=8,score=0,lives=3,over=false,win=false,keys={},ac=null;
+var colors=['#ff5c8a','#ff9e79','#ffd166','#06d6a0','#118ab2'];
+function beep(f,d,t,v){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+var o=ac.createOscillator(),g=ac.createGain();o.type=t||'square';o.frequency.value=f;
+g.gain.setValueAtTime(v||.05,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);
+o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d);}catch(e){}}
+function reset(){bricks=[];for(var r=0;r<rows;r++)for(var q=0;q<cols;q++)
+bricks.push({x:40+q*66,y:50+r*26,w:56,h:18,col:colors[r],alive:true});
+pad.x=W/2-45;ball.x=W/2;ball.y=H-50;ball.vx=4;ball.vy=-4;score=0;lives=3;over=false;win=false;}
+reset();
+addEventListener('keydown',function(e){keys[e.key]=true;if(e.key===' '&&over)reset();});
+addEventListener('keyup',function(e){keys[e.key]=false;});
+c.addEventListener('mousemove',function(e){var r=c.getBoundingClientRect();pad.x=e.clientX-r.left-pad.w/2;});
+function update(){
+if(over)return;
+if(keys.ArrowLeft||keys.a)pad.x-=pad.sp;
+if(keys.ArrowRight||keys.d)pad.x+=pad.sp;
+pad.x=Math.max(0,Math.min(W-pad.w,pad.x));
+ball.x+=ball.vx;ball.y+=ball.vy;
+if(ball.x-ball.r<0){ball.x=ball.r;ball.vx*=-1;beep(400,.03);}
+if(ball.x+ball.r>W){ball.x=W-ball.r;ball.vx*=-1;beep(400,.03);}
+if(ball.y-ball.r<0){ball.y=ball.r;ball.vy*=-1;beep(400,.03);}
+if(ball.y+ball.r>pad.y&&ball.x>pad.x&&ball.x<pad.x+pad.w&&ball.vy>0){
+ball.vy*=-1;ball.vx=(ball.x-(pad.x+pad.w/2))*.16;beep(600,.05);}
+var alive=0;
+bricks.forEach(function(b){if(!b.alive)return;alive++;
+if(ball.x>b.x&&ball.x<b.x+b.w&&ball.y-ball.r<b.y+b.h&&ball.y+ball.r>b.y){
+b.alive=false;ball.vy*=-1;score+=20;beep(850,.06,'square',.06);}});
+if(alive===0){over=true;win=true;beep(1200,.3);}
+if(ball.y>H){lives--;beep(180,.2,'sawtooth',.08);if(lives<=0){over=true;}else{ball.x=pad.x+pad.w/2;ball.y=pad.y-10;ball.vx=4*(Math.random()>.5?1:-1);ball.vy=-4;}}}
+function draw(){
+x.fillStyle='#0e1017';x.fillRect(0,0,W,H);
+bricks.forEach(function(b){if(!b.alive)return;x.fillStyle=b.col;x.fillRect(b.x,b.y,b.w,b.h);});
+x.fillStyle='#7cf5a0';x.fillRect(pad.x,pad.y,pad.w,pad.h);
+x.fillStyle='#fff';x.beginPath();x.arc(ball.x,ball.y,ball.r,0,7);x.fill();
+x.fillStyle='#fff';x.font='bold 16px monospace';x.textAlign='left';x.fillText('SCORE '+score,18,28);
+x.textAlign='right';x.fillText('LIVES '+lives,W-18,28);
+if(over){x.fillStyle='rgba(0,0,0,.75)';x.fillRect(0,0,W,H);x.fillStyle=win?'#7cf5a0':'#ff6b6b';
+x.font='bold 42px monospace';x.textAlign='center';x.fillText(win?'YOU WIN!':'GAME OVER',W/2,H/2-10);
+x.fillStyle='#fff';x.font='16px monospace';x.fillText('Press SPACE to restart',W/2,H/2+36);}}
+function loop(){update();draw();requestAnimationFrame(loop);}
+loop();})();
+<\/script></body></html>`;
+
+        function makeGame(prompt) {
+            const p = (prompt || '').toLowerCase();
+            if (/\bflappy\b|\bbird\b/.test(p))    return { title: 'Flappy Bird',    html: flappyGame() };
+            if (/\bsnake\b/.test(p))              return { title: 'Snake',          html: snakeGame() };
+            if (/\bpong\b/.test(p))               return { title: 'Pong',           html: pongGame() };
+            if (/\bbreakout\b|\bbrick\b/.test(p)) return { title: 'Breakout',       html: breakoutGame() };
+            return { title: 'Space Invaders', html: invadersGame() };
+        }
+
+        // Minecraft Mod & Data Pack generator for client mode
+        function makeDataPack(prompt) {
+            const p = (prompt || '').toLowerCase();
+            const ns = 'kaleb';
+
+            let modTitle = 'Custom Power Mod';
+            let item = 'minecraft:diamond_sword';
+            let itemLabel = 'Diamond Blade';
+            let itemColor = 'gold';
+
+            if (/\bdouble\s*jump\b/.test(p)) {
+                modTitle = 'Double Jump Mod';
+                item = 'minecraft:diamond_boots';
+                itemLabel = 'Boots of Double Jump';
+                itemColor = 'aqua';
+            } else if (/\b(fly|flight|hover|glide)\b/.test(p)) {
+                modTitle = 'Flight Mod';
+                item = 'minecraft:elytra';
+                itemLabel = 'Wings of Flight';
+                itemColor = 'light_purple';
+            } else if (/\b(lightning|thunder|storm|mjolnir|thor)\b/.test(p)) {
+                modTitle = 'Lightning Hammer Mod';
+                item = 'minecraft:mace';
+                itemLabel = 'Mjolnir Lightning Hammer';
+                itemColor = 'yellow';
+            } else if (/\b(fireball|flame|fire|pyro|blaze)\b/.test(p)) {
+                modTitle = 'Fireball Wand Mod';
+                item = 'minecraft:blaze_rod';
+                itemLabel = 'Fireball Blaze Wand';
+                itemColor = 'red';
+            } else if (/\b(emerald)\b/.test(p)) {
+                modTitle = 'Emerald Sword Mod';
+                item = 'minecraft:diamond_sword';
+                itemLabel = 'Emerald Sword';
+                itemColor = 'green';
+            } else if (/\b(ruby)\b/.test(p)) {
+                modTitle = 'Ruby Blade Mod';
+                item = 'minecraft:netherite_sword';
+                itemLabel = 'Ruby Blade';
+                itemColor = 'dark_red';
+            } else if (/\b(god|immortal|invulnerab)\b/.test(p)) {
+                modTitle = 'God Mode Armor Mod';
+                item = 'minecraft:netherite_chestplate';
+                itemLabel = 'God Mode Plate';
+                itemColor = 'gold';
+            } else if (/\b(speed|flash|sonic|dash)\b/.test(p)) {
+                modTitle = 'Super Speed Mod';
+                item = 'minecraft:golden_boots';
+                itemLabel = 'Speedster Boots';
+                itemColor = 'yellow';
+            } else if (/\b(explod|tnt|bomb|blast)\b/.test(p)) {
+                modTitle = 'Explosive Wand Mod';
+                item = 'minecraft:bow';
+                itemLabel = 'Explosive Cannon';
+                itemColor = 'dark_red';
+            } else if (/\b(teleport|tp|ender|blink)\b/.test(p)) {
+                modTitle = 'Teleport Dagger Mod';
+                item = 'minecraft:echo_shard';
+                itemLabel = 'Blink Shard';
+                itemColor = 'dark_aqua';
+            } else {
+                const cleanWords = p.replace(/\b(make|create|build|generate|a|the|mod|mods|datapack|data pack|for|in|minecraft|please|give|me)\b/gi, '').trim();
+                if (cleanWords.length > 2) {
+                    modTitle = cleanWords.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') + ' Mod';
+                    itemLabel = modTitle.replace(' Mod', '');
+                }
+            }
+
+            if (/\bboots\b/.test(p)) item = 'minecraft:diamond_boots';
+            else if (/\b(chestplate|armor)\b/.test(p)) item = 'minecraft:netherite_chestplate';
+            else if (/\bhelmet\b/.test(p)) item = 'minecraft:diamond_helmet';
+            else if (/\b(wand|staff)\b/.test(p)) item = 'minecraft:blaze_rod';
+            else if (/\b(hammer|mace)\b/.test(p)) item = 'minecraft:mace';
+            else if (/\b(axe)\b/.test(p)) item = 'minecraft:diamond_axe';
+            else if (/\b(pickaxe)\b/.test(p)) item = 'minecraft:diamond_pickaxe';
+            else if (/\b(bow)\b/.test(p)) item = 'minecraft:bow';
+            else if (/\b(shield)\b/.test(p)) item = 'minecraft:shield';
+            else if (/\b(ring|amulet)\b/.test(p)) item = 'minecraft:gold_nugget';
+
+            const tickLines = [];
+            const featureList = [];
+
+            if (/\b(double\s*jump|triple\s*jump|jump)\b/.test(p)) {
+                tickLines.push(
+                    `execute as @a at @s if items entity @s weapon.mainhand ${item} run effect give @s minecraft:jump_boost 1 3 true`,
+                    `execute as @a at @s if items entity @s weapon.mainhand ${item} if entity @s[nbt={Sneaking:1b}] run effect give @s minecraft:levitation 1 14 true`,
+                    `execute as @a at @s if items entity @s weapon.mainhand ${item} run particle minecraft:cloud ~ ~ ~ 0.3 0.1 0.3 0.04 4`
+                );
+                featureList.push('Double Jump (Jump Boost IV + Levitation kick when crouching)');
+            }
+
+            if (/\b(fly|flight|hover|glide)\b/.test(p)) {
+                tickLines.push(
+                    `execute as @a at @s if items entity @s weapon.mainhand ${item} run effect give @s minecraft:slow_falling 1 0 true`,
+                    `execute as @a at @s if items entity @s weapon.mainhand ${item} if entity @s[nbt={Sneaking:1b}] run effect give @s minecraft:levitation 1 2 true`,
+                    `execute as @a at @s if items entity @s weapon.mainhand ${item} run particle minecraft:cloud ~ ~0.1 ~ 0.2 0.05 0.2 0.01 2`
+                );
+                featureList.push('Flight / Gliding (Slow Falling + Levitation hover while sneaking)');
+            }
+
+            if (/\b(lightning|thunder|storm|shock)\b/.test(p)) {
+                tickLines.push(
+                    `execute as @a at @s if items entity @s weapon.mainhand ${item} run particle minecraft:electric_spark ~ ~1 ~ 0.4 0.4 0.4 0.1 6`,
+                    `execute as @a at @s if items entity @s weapon.mainhand ${item} if entity @s[nbt={Sneaking:1b}] at @e[type=!player,distance=2..15,limit=1,sort=nearest] run summon minecraft:lightning_bolt ~ ~ ~`
+                );
+                featureList.push('Lightning Strike (Summons lightning on nearby targets when sneaking)');
+            }
+
+            if (/\b(fire|flame|fireball|burn|lava)\b/.test(p)) {
+                tickLines.push(
+                    `execute as @a at @s if items entity @s weapon.mainhand ${item} run effect give @s minecraft:fire_resistance 1 0 true`,
+                    `execute as @a at @s if items entity @s weapon.mainhand ${item} run particle minecraft:flame ~ ~1 ~ 0.3 0.3 0.3 0.05 6`,
+                    `execute as @a at @s if items entity @s weapon.mainhand ${item} if entity @s[nbt={Sneaking:1b}] run summon minecraft:small_fireball ^ ^1.5 ^1 {power:[0.4,0.0,0.4]}`
+                );
+                featureList.push('Fireball Blast & Fire Immunity (Shoot fireballs when sneaking)');
+            }
+
+            if (/\b(explod|tnt|bomb|blast)\b/.test(p)) {
+                tickLines.push(
+                    `execute as @a at @s if items entity @s weapon.mainhand ${item} run effect give @s minecraft:resistance 1 3 true`,
+                    `execute as @a at @s if items entity @s weapon.mainhand ${item} if entity @s[nbt={Sneaking:1b}] at @e[type=!player,distance=3..12,limit=1,sort=nearest] run summon minecraft:tnt ~ ~ ~ {Fuse:15}`
+                );
+                featureList.push('Explosive Strike (Summons primed TNT near enemies when sneaking)');
+            }
+
+            if (/\b(speed|fast|dash|swift|sonic)\b/.test(p)) {
+                tickLines.push(
+                    `execute as @a at @s if items entity @s weapon.mainhand ${item} run effect give @s minecraft:speed 1 3 true`,
+                    `execute as @a at @s if items entity @s weapon.mainhand ${item} run particle minecraft:smoke ~ ~0.1 ~ 0.2 0.1 0.2 0.02 3`
+                );
+                featureList.push('Super Speed IV with trail particles');
+            }
+
+            if (/\b(god|immortal|invulnerab|heal|regen|invincible)\b/.test(p)) {
+                tickLines.push(
+                    `execute as @a at @s if items entity @s weapon.mainhand ${item} run effect give @s minecraft:resistance 1 4 true`,
+                    `execute as @a at @s if items entity @s weapon.mainhand ${item} run effect give @s minecraft:regeneration 1 2 true`,
+                    `execute as @a at @s if items entity @s weapon.mainhand ${item} run effect give @s minecraft:absorption 1 3 true`,
+                    `execute as @a at @s if items entity @s weapon.mainhand ${item} run effect give @s minecraft:saturation 1 1 true`
+                );
+                featureList.push('God Mode Invulnerability (Resistance V + Regeneration III + Absorption IV)');
+            }
+
+            if (/\b(teleport|tp|blink|ender)\b/.test(p)) {
+                tickLines.push(
+                    `execute as @a at @s if items entity @s weapon.mainhand ${item} run particle minecraft:portal ~ ~1 ~ 0.3 0.3 0.3 0.3 6`,
+                    `execute as @a at @s if items entity @s weapon.mainhand ${item} if entity @s[nbt={Sneaking:1b}] run tp @s ^ ^ ^3`
+                );
+                featureList.push('Blink Teleport (Teleport forward 3 blocks when sneaking)');
+            }
+
+            if (/\b(strength|damage|power|kill|sharp)\b/.test(p)) {
+                tickLines.push(`execute as @a at @s if items entity @s weapon.mainhand ${item} run effect give @s minecraft:strength 1 4 true`);
+                featureList.push('Super Strength V (Massive melee damage)');
+            }
+
+            if (tickLines.length === 0) {
+                tickLines.push(
+                    `execute as @a at @s if items entity @s weapon.mainhand ${item} run effect give @s minecraft:speed 1 2 true`,
+                    `execute as @a at @s if items entity @s weapon.mainhand ${item} run effect give @s minecraft:strength 1 2 true`,
+                    `execute as @a at @s if items entity @s weapon.mainhand ${item} run effect give @s minecraft:jump_boost 1 1 true`,
+                    `execute as @a at @s if items entity @s weapon.mainhand ${item} run effect give @s minecraft:fire_resistance 1 0 true`,
+                    `execute as @a at @s if items entity @s weapon.mainhand ${item} run particle minecraft:enchanted_hit ~ ~1 ~ 0.3 0.3 0.3 0.05 4`
+                );
+                featureList.push('Custom Weapon Powers (Speed III + Strength II + Jump Boost II + Fire Resistance + Magic Aura)');
+            }
+
+            const slug = modTitle.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'custom_mod';
+            const zipName = `${slug}.zip`;
+
+            const tickContent = tickLines.join('\n') + '\n';
+            const loadContent = [
+                `# Kaleb AI - ${modTitle}`,
+                `give @a ${item}[minecraft:custom_name='{"text":"${itemLabel}","color":"${itemColor}","bold":true}',minecraft:lore=['{"text":"Custom Mod by Kaleb AI","color":"gray"}']] 1`,
+                `tellraw @a [{"text":"[Kaleb AI] ","color":"aqua","bold":true},{"text":"${modTitle} loaded! Received ${itemLabel}.","color":"green"}]`,
+                ''
+            ].join('\n');
+
+            const readmeContent = [
+                `========================================`,
+                `  ${modTitle.toUpperCase()}`,
+                `========================================`,
+                `Generated by Kaleb AI`,
+                ``,
+                `HOW TO INSTALL & PLAY:`,
+                `1. Download this "${zipName}" file (do NOT unzip it).`,
+                `2. Open your Minecraft world's folder:`,
+                `   Press Win+R -> type: %appdata%\\.minecraft\\saves`,
+                `   Open your world folder -> open the "datapacks" folder:`,
+                `   .minecraft/saves/<YourWorldName>/datapacks/`,
+                `3. Drop "${zipName}" into that "datapacks" folder!`,
+                `4. In Minecraft, run:`,
+                `   /reload`,
+                `5. You will see "[Kaleb AI] ${modTitle} loaded!" and receive your ${itemLabel}!`,
+                ``,
+                `FEATURES INCLUDED:`,
+                featureList.map(f => `  * ${f}`).join('\n'),
+                ``,
+                `CONTROLS:`,
+                `  - Hold "${itemLabel}" in your main hand to activate passive powers.`,
+                `  - Sneak (Shift) while holding to trigger special powers.`,
+                ``,
+                `COMPATIBILITY:`,
+                `  Minecraft Java Edition 1.20 - 1.21+ (Vanilla, OptiFine, Fabric, Forge, Paper).`
+            ].join('\n');
+
+            return {
+                zipName,
+                badge: `Minecraft Mod — ${modTitle} (.zip)`,
+                summary: `Adds **${itemLabel}** with ${featureList.join(', ')}.`,
+                data: {
+                    zipName,
+                    badge: `Minecraft Mod — ${modTitle} (.zip)`,
+                    summary: `Adds **${itemLabel}** with ${featureList.join(', ')}.`,
+                    entries: {
+                        'pack.mcmeta': JSON.stringify({
+                            pack: {
+                                pack_format: 48,
+                                description: `Kaleb AI — ${modTitle}`
+                            }
+                        }, null, 2),
+                        [`data/${ns}/function/tick.mcfunction`]: tickContent,
+                        [`data/${ns}/function/load.mcfunction`]: loadContent,
+                        'data/minecraft/tags/function/tick.json': JSON.stringify({ values: [`${ns}:tick`] }, null, 2),
+                        'data/minecraft/tags/function/load.json': JSON.stringify({ values: [`${ns}:load`] }, null, 2),
+                        'README.txt': readmeContent
+                    }
+                }
+            };
+        }
+
+        // Send Message
+        async function sendMessage() {
+            if (isGenerating) return;
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            const currentFiles = [...attachedFiles];
+
+            if (!text && currentFiles.length === 0) return;
+
+            // Hide empty state
+            const emptyState = document.getElementById('emptyState');
+            if (emptyState) emptyState.style.display = 'none';
+
+            // Append User message
+            appendUserMessage(text, currentFiles);
+            conversation.push({ role: 'user', content: text });
+
+            // Clear input
+            input.value = '';
+            attachedFiles = [];
+            renderAttachmentChips();
+            autoResizeTextarea(input);
+            document.getElementById('sendBtn').disabled = true;
+
+            // Create Assistant Message Placeholder
+            const assistantRow = appendAssistantPlaceholder();
+            isGenerating = true;
+
+            await checkServer();
+
+            if (serverAvailable) {
+                try {
+                    const resp = await fetch(`${SERVER_ORIGIN}/api/chat`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            prompt: text,
+                            history: conversation,
+                            deepthink: isDeepThink,
+                            web_search: isWebSearch,
+                            api_key: apiKey,
+                            model_mode: modelMode,
+                            attached_files: currentFiles
+                        })
+                    });
+
+                    const data = await resp.json();
+
+                    if (!data.error) {
+                        isGenerating = false;
+                        renderAssistantResponse(assistantRow, data);
+                        conversation.push({ role: 'assistant', content: data.answer });
+                        refreshFilesList();
+                        return;
+                    }
+                    console.warn('Server error, falling back to direct client AI:', data.error);
+                } catch (err) {
+                    console.warn('Server fetch failed, falling back to direct client AI:', err);
+                }
+            }
+
+            // Direct client-side AI execution (fallback or standalone)
+            try {
+                const data = await callDirectAI(text, conversation.slice(0, -1), currentFiles);
+                isGenerating = false;
+                renderAssistantResponse(assistantRow, data);
+                conversation.push({ role: 'assistant', content: data.answer });
+                refreshFilesList();
+            } catch (err) {
+                isGenerating = false;
+                renderAssistantResponse(assistantRow, { answer: "Error: " + err.message });
+            }
+        }
+
+        // Direct Client-Side AI Engine with full Game Studio & Mod Creator capabilities
+        const KALEB_SYSTEM_PROMPT = `You are Kaleb AI — a chill, witty, and genuinely helpful AI built by Kaleb. Think of yourself as that one smart friend who knows their stuff but never makes you feel dumb for asking.
+
+YOUR VIBE:
+- Talk like a real person. Use casual language, contractions, and natural phrasing. No corporate robot stuff.
+- Be warm and enthusiastic, especially when helping with cool projects.
+- Light humor when it fits — a witty comment, a fun observation. Don't force it.
+- Keep answers tight. Conversational question = conversational answer.
+- If someone's frustrated, acknowledge it genuinely before jumping in with solutions.
+- Use "I think", "I'd go with", "honestly", "ngl", "tbh" when it feels right.
+- Occasional emoji to add life — not spam.
+
+HARD RULES:
+1. No code unless the user explicitly asks to write, build, code, or develop something.
+2. Answer directly and relevantly. Match the vibe of what's being asked.
+3. GAME CREATION: When asked to make a game, ALWAYS build a complete playable single-file HTML game in a \`\`\`html block. HTML5 canvas + JS. Controls, requestAnimationFrame loop, collision, scoring, Web Audio sounds, game over/restart. No external images or CDNs — draw everything on canvas.
+4. MINECRAFT MODS: When asked for a mod or data pack, describe it in an exciting way. A .zip will be auto-packaged.
+5. NEVER start with "Certainly!", "Of course!", "Absolutely!", "Great question!" — just answer.`;
+
+        async function callDirectAI(prompt, history, attachedFiles) {
+            const isGroq = modelMode === 'groq' && apiKey;
+            const isDeepSeek = modelMode === 'deepseek' && apiKey;
+            const p = (prompt || '').toLowerCase();
+
+            const msgs = [{ role: 'system', content: KALEB_SYSTEM_PROMPT }];
+
+            for (const m of (Array.isArray(history) ? history.slice(-10) : [])) {
+                if (!m || !m.content) continue;
+                msgs.push({
+                    role: m.role === 'assistant' ? 'assistant' : 'user',
+                    content: String(m.content).slice(0, 8000)
+                });
+            }
+
+            let userContent = prompt || '';
+            if (attachedFiles && attachedFiles.length > 0) {
+                const texts = attachedFileDetails
+                    .filter(f => attachedFiles.includes(f.name) && f.text)
+                    .map(f => `--- Attached File: ${f.name} ---\n${f.text}`)
+                    .join('\n\n');
+                if (texts) {
+                    userContent += '\n\n' + texts;
+                } else {
+                    userContent += `\n\n[Attached files: ${attachedFiles.join(', ')}]`;
+                }
+            }
+            if (isWebSearch) {
+                userContent += '\n\n[Web search toggled: answer thoroughly with your most up-to-date knowledge.]';
+            }
+
+            msgs.push({ role: 'user', content: userContent });
+
+            let rawAnswer = '';
+            let thinking = '';
+
+            if (isGroq) {
+                const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+                    body: JSON.stringify({
+                        model: 'deepseek-r1-distill-llama-70b',
+                        messages: msgs,
+                        temperature: 0.7,
+                        max_tokens: 8000
+                    })
+                });
+                if (!resp.ok) throw new Error(`Groq API error: HTTP ${resp.status}`);
+                const data = await resp.json();
+                const msg = data.choices?.[0]?.message || {};
+                rawAnswer = msg.content || '';
+                thinking = msg.reasoning_content || '';
+            } else if (isDeepSeek) {
+                const resp = await fetch('https://api.deepseek.com/chat/completions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+                    body: JSON.stringify({
+                        model: 'deepseek-reasoner',
+                        messages: msgs,
+                        temperature: 0.7,
+                        max_tokens: 8000
+                    })
+                });
+                if (!resp.ok) throw new Error(`DeepSeek API error: HTTP ${resp.status}`);
+                const data = await resp.json();
+                const msg = data.choices?.[0]?.message || {};
+                rawAnswer = msg.content || '';
+                thinking = msg.reasoning_content || '';
+            } else {
+                // Free Reasoning Engine via Pollinations
+                const body = JSON.stringify({
+                    model: 'openai',
+                    messages: msgs,
+                    private: true,
+                    referrer: 'kaleb-ai',
+                    temperature: 0.7
+                });
+
+                let success = false;
+                for (const url of ['https://text.pollinations.ai/openai', 'https://text.pollinations.ai/v1/chat/completions']) {
+                    try {
+                        const resp = await fetch(url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                            body: body
+                        });
+                        if (resp.ok) {
+                            const text = await resp.text();
+                            try {
+                                const json = JSON.parse(text);
+                                const msg = json.choices?.[0]?.message;
+                                if (msg) {
+                                    rawAnswer = msg.content || msg.text || '';
+                                    thinking = msg.reasoning_content || msg.reasoning || '';
+                                    success = true;
+                                    break;
+                                }
+                            } catch (e) {
+                                if (text.trim().length > 15 && !text.trim().startsWith('<')) {
+                                    rawAnswer = text.trim();
+                                    success = true;
+                                    break;
+                                }
+                            }
+                        }
+                    } catch (err) {}
+                }
+
+                if (!success) {
+                    const isGameCmd = /\b(make|create|build|generate|code|program)\b.*\b(game|arcade|flappy|space invaders|snake|pong|breakout)\b/i.test(p);
+                    const isModCmd = /\b(make|create|build|generate|code|program|give)\b.*\b(mod|mods|datapack|data pack|addon|addons)\b/i.test(p);
+                    if (isGameCmd) {
+                        const g = makeGame(prompt);
+                        rawAnswer = `## 🎮 ${g.title}\n\nI built a complete, self-contained **${g.title}** game for you! Click **Play in Browser** below to play right now, or download the \`.html\` file.\n\n\`\`\`html\n${g.html}\n\`\`\``;
+                        thinking = `Built offline ${g.title} game on HTML5 Canvas.`;
+                    } else if (isModCmd) {
+                        const m = makeDataPack(prompt);
+                        rawAnswer = `## 📦 ${m.badge}\n\n${m.summary}\n\nI generated a complete, working Minecraft mod package for you! Drop the \`.zip\` directly into your \`.minecraft/saves/<YourWorld>/datapacks/\` folder and type \`/reload\` to play!`;
+                        thinking = `Generated custom Minecraft mod package for ${m.zipName}.`;
+                    } else {
+                        const resp = await fetch('https://text.pollinations.ai/' + encodeURIComponent(prompt || 'hello'), { method: 'GET' });
+                        if (resp.ok) {
+                            rawAnswer = await resp.text();
+                        } else {
+                            throw new Error('Could not reach the AI service. Please verify your connection.');
+                        }
+                    }
+                }
+            }
+
+            // Split thinking tags
+            const sp = splitThinking(rawAnswer);
+            if (sp.thinking) {
+                thinking = (thinking ? thinking + '\n\n' : '') + sp.thinking;
+            }
+            let cleanAnswer = sp.answer || rawAnswer;
+
+            // Detect client-side artifacts
+            const generated_files = [];
+
+            // 1. Playable Game detection
+            const isGamePrompt = /\b(make|create|build|generate|code|program)\b.*\b(game|arcade|flappy|space invaders|snake|pong|breakout|platformer|clicker|canvas)\b/i.test(p) ||
+                                 /\b(game|arcade|flappy|space invaders|snake|pong|breakout)\b.*\b(make|create|build|generate|code|program)\b/i.test(p);
+
+            const blocks = extractCodeBlocks(cleanAnswer);
+            let gameBlock = blocks.find(b => /<!doctype html|<html|<canvas/i.test(b.code));
+
+            // If user asked to make a game and the model didn't return an html block, provide the built-in game!
+            if (isGamePrompt && !gameBlock) {
+                const built = makeGame(prompt);
+                gameBlock = { lang: 'html', code: built.html };
+                cleanAnswer += `\n\n## 🎮 ${built.title}\n\nHere is your playable **${built.title}** game:\n\n\`\`\`html\n${built.html}\n\`\`\``;
+            }
+
+            if (gameBlock) {
+                let html = gameBlock.code;
+                if (!/<!doctype html|<html/i.test(html)) {
+                    html = `<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<title>Game</title>\n</head>\n<body>\n${html}\n</body>\n</html>`;
+                }
+                const titleMatch = html.match(/<title>([^<]+)<\/title>/i);
+                const title = titleMatch ? titleMatch[1].trim() : 'Playable Game';
+                const blob = new Blob([html], { type: 'text/html' });
+                const playUrl = URL.createObjectURL(blob);
+                const fname = `game_${Date.now()}.html`;
+                generated_files.push({
+                    is_game: true,
+                    game_title: title,
+                    path: playUrl,
+                    play_url: playUrl,
+                    filename: fname
+                });
+                clientVault.unshift({
+                    name: fname,
+                    size: blob.size,
+                    mtime: Date.now(),
+                    type: 'generated',
+                    download_url: playUrl
+                });
+                saveClientVault();
+            }
+
+            // 2. Minecraft Skin detection
+            const isSkinPrompt = /\bskin\b/i.test(p) && /\b(make|create|generate|render|draw|build)\b/i.test(p);
+            if (isSkinPrompt) {
+                const skinDataUrl = generateSkinDataURL(prompt);
+                const fname = `skin_${Date.now()}.png`;
+                generated_files.push({
+                    is_skin: true,
+                    path: skinDataUrl,
+                    filename: fname,
+                    badge: 'Minecraft Player Skin (64×64)'
+                });
+                clientVault.unshift({
+                    name: fname,
+                    size: 1024,
+                    mtime: Date.now(),
+                    type: 'generated',
+                    download_url: skinDataUrl
+                });
+                saveClientVault();
+            }
+
+            // 3. Minecraft Pack / Mod Zip detection
+            const isPackPrompt = /\b(mod|mods|datapack|data pack|addon|addons|fabric|forge)\b/i.test(p) &&
+                                 /\b(make|create|build|generate|code|program|give)\b/i.test(p);
+            if (isPackPrompt && window.JSZip) {
+                const built = makeDataPack(prompt);
+                const zip = new JSZip();
+                const named = extractNamedFiles(cleanAnswer);
+                if (named.length >= 2) {
+                    named.forEach(n => zip.file(n.file, n.code));
+                } else {
+                    Object.keys(built.data.entries).forEach(k => zip.file(k, built.data.entries[k]));
+                    cleanAnswer += `\n\n## 📦 ${built.badge}\n\n${built.summary}\n\n**How to Install**:\n1. Click **Download Package (.zip)** below.\n2. Drop the \`.zip\` into \`.minecraft/saves/<YourWorld>/datapacks/\`.\n3. In game, run \`/reload\` to receive your custom item and powers!`;
+                }
+                const zipBlob = await zip.generateAsync({ type: 'blob' });
+                const zipUrl = URL.createObjectURL(zipBlob);
+                generated_files.push({
+                    is_minecraft_pack: true,
+                    path: zipUrl,
+                    filename: built.zipName,
+                    badge: built.badge
+                });
+                clientVault.unshift({
+                    name: built.zipName,
+                    size: zipBlob.size,
+                    mtime: Date.now(),
+                    type: 'generated',
+                    download_url: zipUrl
+                });
+                saveClientVault();
+            }
+
+            return {
+                answer: cleanAnswer,
+                thinking: thinking || (isDeepThink ? 'Kaleb AI reasoning completed.' : ''),
+                thinking_time: '1.2',
+                generated_files: generated_files
+            };
+        }
+
+        function splitThinking(text) {
+            if (!text) return { thinking: '', answer: '' };
+            let thinking = '';
+            for (const re of [/<think(?:ing)?>([\s\S]*?)<\/think(?:ing)?>/i, /<reasoning>([\s\S]*?)<\/reasoning>/i]) {
+                const m = text.match(re);
+                if (m) {
+                    thinking = m[1].trim();
+                    text = text.replace(m[0], '').trim();
+                    break;
+                }
+            }
+            return { thinking, answer: text };
+        }
+
+        function extractCodeBlocks(md) {
+            const out = [];
+            const re = /```([a-zA-Z0-9+#._-]*)[ \t]*\r?\n([\s\S]*?)```/g;
+            let m;
+            while ((m = re.exec(md))) {
+                out.push({ lang: (m[1] || '').toLowerCase(), code: m[2] });
+            }
+            return out;
+        }
+
+        function extractNamedFiles(md) {
+            const out = [];
+            const re = /(?:^|\n)[ \t]*(?:#{1,6}[ \t]*)?(?:\*\*|`|__)?([A-Za-z0-9_][A-Za-z0-9_./\\-]*\.[A-Za-z0-9]{1,8})(?:\*\*|`|__)?[ \t]*:?[ \t]*\r?\n+```[A-Za-z0-9+#._-]*[ \t]*\r?\n([\s\S]*?)```/g;
+            let m;
+            while ((m = re.exec(md))) {
+                const file = m[1].replace(/\\/g, '/').replace(/^\.\//, '');
+                if (/^[0-9.]+$/.test(file) || !/[A-Za-z]/.test(file)) continue;
+                out.push({ file, code: m[2] });
+            }
+            return out;
+        }
+
+        function adjustColorBrightness(hex, percent) {
+            const num = parseInt(hex.replace('#', ''), 16);
+            const amt = Math.round(2.55 * percent);
+            const R = Math.min(255, Math.max(0, (num >> 16) + amt));
+            const G = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amt));
+            const B = Math.min(255, Math.max(0, (num & 0x0000FF) + amt));
+            return '#' + (0x1000000 + (R << 16) + (G << 8) + B).toString(16).slice(1);
+        }
+
+        function generateSkinDataURL(promptText) {
+            const p = (promptText || '').toLowerCase();
+            let base = '#2b2f45', accent = '#7c4dff';
+
+            if      (/\b(fire|flame|lava|magma|red)\b/.test(p))            { base = '#7a1f1f'; accent = '#ffb020'; }
+            else if (/\b(ice|frost|snow|blue|water)\b/.test(p))            { base = '#1f3a6e'; accent = '#7fd4ff'; }
+            else if (/\b(emerald|green|jungle|nature|leaf)\b/.test(p))     { base = '#1f6b3a'; accent = '#7cf5a0'; }
+            else if (/\b(gold|royal|paladin|king|queen)\b/.test(p))        { base = '#8a6b1f'; accent = '#ffd94a'; }
+            else if (/\b(dark|knight|shadow|void|purple|assassin|ninja)\b/.test(p)) { base = '#241f33'; accent = '#a24dff'; }
+            else if (/\b(pink|rose|love|cute)\b/.test(p))                  { base = '#7a2f56'; accent = '#ff8fd0'; }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = 64;
+            canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 64, 64);
+
+            const B  = base;
+            const B2 = adjustColorBrightness(base, -20);
+            const A  = accent;
+
+            const rect = (x, y, w, h, col) => {
+                ctx.fillStyle = col;
+                ctx.fillRect(x, y, w, h);
+            };
+
+            // Head 8x8x8
+            rect(8, 0, 8, 8, B); rect(16, 0, 8, 8, B2);
+            rect(0, 8, 8, 8, B2); rect(8, 8, 8, 8, B);
+            rect(16, 8, 8, 8, B2); rect(24, 8, 8, 8, B2);
+            // Glowing eyes
+            rect(9, 12, 2, 1, A); rect(13, 12, 2, 1, A);
+            rect(10, 13, 1, 1, A); rect(13, 13, 1, 1, A);
+
+            // Body 8x12x4
+            rect(20, 16, 8, 4, B); rect(28, 16, 8, 4, B2);
+            rect(16, 20, 4, 12, B2); rect(20, 20, 8, 12, B);
+            rect(28, 20, 4, 12, B2); rect(32, 20, 8, 12, B2);
+            rect(20, 23, 8, 1, A);
+
+            // Right arm 4x12x4
+            rect(44, 16, 4, 4, B); rect(48, 16, 4, 4, B2);
+            rect(40, 20, 4, 12, B2); rect(44, 20, 4, 12, B);
+            rect(48, 20, 4, 12, B2); rect(52, 20, 4, 12, B2);
+
+            // Left arm 4x12x4
+            rect(36, 48, 4, 4, B); rect(40, 48, 4, 4, B2);
+            rect(32, 52, 4, 12, B2); rect(36, 52, 4, 12, B);
+            rect(40, 52, 4, 12, B2); rect(44, 52, 4, 12, B2);
+
+            // Right leg 4x12x4
+            rect(4, 16, 4, 4, B); rect(8, 16, 4, 4, B2);
+            rect(0, 20, 4, 12, B2); rect(4, 20, 4, 12, B);
+            rect(8, 20, 4, 12, B2); rect(12, 20, 4, 12, B2);
+
+            // Left leg 4x12x4
+            rect(20, 48, 4, 4, B); rect(24, 48, 4, 4, B2);
+            rect(16, 52, 4, 12, B2); rect(20, 52, 4, 12, B);
+            rect(24, 52, 4, 12, B2); rect(28, 52, 4, 12, B2);
+
+            return canvas.toDataURL('image/png');
+        }
+
+        function triggerBlobDownload(filename, content, mimeType) {
+            const blob = (content instanceof Blob) ? content : new Blob([content], { type: mimeType || 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 10000);
+        }
+
+        function appendUserMessage(text, files) {
+            const container = document.getElementById('messagesContainer');
+            const row = document.createElement('div');
+            row.className = 'message-row user';
+
+            let filesHtml = '';
+            if (files && files.length > 0) {
+                filesHtml = `<div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
+                    ${files.map(f => `<span style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 12px; font-size: 0.75rem;"><i class="fa-solid fa-paperclip"></i> ${escapeHtml(f)}</span>`).join('')}
+                </div>`;
+            }
+
+            row.innerHTML = `
+                <div class="message-content">
+                    <div class="message-body">
+                        ${filesHtml}
+                        <div>${escapeHtml(text)}</div>
+                    </div>
+                </div>
+                <div class="avatar user"><i class="fa-solid fa-user"></i></div>
+            `;
+            container.appendChild(row);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function appendAssistantPlaceholder() {
+            const container = document.getElementById('messagesContainer');
+            const row = document.createElement('div');
+            row.className = 'message-row assistant';
+            row.innerHTML = `
+                <div class="avatar assistant"><i class="fa-solid fa-brain"></i></div>
+                <div class="message-content" style="width: 100%;">
+                    <div class="message-body">
+                        <div class="loading-dots">Thinking<span>.</span><span>.</span><span>.</span></div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(row);
+            container.scrollTop = container.scrollHeight;
+            return row;
+        }
+
+        function renderAssistantResponse(row, data) {
+            const contentDiv = row.querySelector('.message-content');
+            contentDiv.innerHTML = '';
+
+            // 1. Thinking Process Block
+            if (data.thinking && data.thinking.trim() !== '') {
+                const thinkingTime = data.thinking_time || 1.2;
+                const thinkBox = document.createElement('div');
+                thinkBox.className = 'thinking-box';
+                thinkBox.innerHTML = `
+                    <div class="thinking-header" onclick="toggleThinking(this)">
+                        <div class="thinking-label">
+                            <i class="fa-solid fa-brain" style="color: var(--brand-blue);"></i>
+                            <span>Thought for ${thinkingTime}s</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down" style="font-size: 0.8rem; transition: transform 0.2s;"></i>
+                    </div>
+                    <div class="thinking-body">${escapeHtml(data.thinking)}</div>
+                `;
+                contentDiv.appendChild(thinkBox);
+            }
+
+            // 2. Main Answer with Markdown & Code
+            const answerDiv = document.createElement('div');
+            answerDiv.className = 'message-body';
+
+            if (window.marked) {
+                answerDiv.innerHTML = marked.parse(data.answer || '');
+            } else {
+                answerDiv.innerText = data.answer || '';
+            }
+
+            // Enhance code blocks with download & copy headers
+            const codeBlocks = answerDiv.querySelectorAll('pre code');
+            codeBlocks.forEach((block, idx) => {
+                const pre = block.parentElement;
+                const lang = block.className.replace('language-', '') || 'code';
+
+                const header = document.createElement('div');
+                header.className = 'code-header';
+                header.innerHTML = `
+                    <span>${escapeHtml(lang)}</span>
+                    <div class="code-actions">
+                        <button class="code-btn" onclick="copyCode(this)"><i class="fa-regular fa-copy"></i> Copy</button>
+                        <button class="code-btn" onclick="downloadCode(this, '${escapeHtml(lang)}', ${idx})"><i class="fa-solid fa-download"></i> Download File</button>
+                    </div>
+                `;
+                pre.parentNode.insertBefore(header, pre);
+                if (window.hljs) hljs.highlightElement(block);
+            });
+
+            contentDiv.appendChild(answerDiv);
+
+            // 3. Downloadable File Badges & Minecraft Pack / Game Cards
+            if (data.generated_files && data.generated_files.length > 0) {
+                const filesBar = document.createElement('div');
+                filesBar.style.marginTop = '12px';
+
+                data.generated_files.forEach(f => {
+                    const filePath = (f.path && f.path.startsWith('/') && serverAvailable) ? `${SERVER_ORIGIN}${f.path}` : f.path;
+                    const playUrl = (f.play_url && f.play_url.startsWith('/') && serverAvailable) ? `${SERVER_ORIGIN}${f.play_url}` : (f.play_url || filePath);
+
+                    if (f.is_skin) {
+                        const skinCard = document.createElement('div');
+                        skinCard.style.cssText = 'background: #1c1f28; border: 1px solid #4D6BFE; border-radius: 12px; padding: 12px 16px; margin: 10px 0; display: flex; align-items: center; gap: 16px;';
+                        skinCard.innerHTML = `
+                            <img src="${filePath}" style="width: 64px; height: 64px; image-rendering: pixelated; border-radius: 6px; border: 1px solid #3d4152; background: #252834;" alt="Minecraft Skin Texture" />
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; font-size: 0.95rem; color: #fff;"><i class="fa-solid fa-shirt" style="color: #10b981; margin-right: 6px;"></i> ${escapeHtml(f.badge || 'Minecraft Player Skin')}</div>
+                                <div style="font-size: 0.78rem; color: var(--text-secondary); margin: 3px 0 10px;">64x64 RGBA texture. Upload to Minecraft Launcher or Minecraft.net profile.</div>
+                                <a href="${filePath}" download="${escapeHtml(f.filename)}" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; padding: 6px 14px;">
+                                    <i class="fa-solid fa-download"></i> Download Skin (.png)
+                                </a>
+                            </div>
+                        `;
+                        filesBar.appendChild(skinCard);
+                    } else if (f.is_game) {
+                        const gameCard = document.createElement('div');
+                        gameCard.style.cssText = 'background: #181922; border: 1px solid #4D6BFE; border-radius: 12px; padding: 14px 18px; margin: 12px 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; box-shadow: 0 4px 16px rgba(77, 107, 254, 0.2);';
+                        gameCard.innerHTML = `
+                            <div>
+                                <div style="font-weight: 700; font-size: 1.05rem; color: #fff; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa-solid fa-gamepad" style="color: #4D6BFE; font-size: 1.2rem;"></i> ${escapeHtml(f.game_title || 'Playable Game')}
+                                </div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">
+                                    Your game is ready! Play it right here in your browser or download it.
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button onclick="launchGameModal('${playUrl}', '${escapeHtml((f.game_title || 'Game').replace(/'/g, "\\'"))}', '${filePath}', '${escapeHtml(f.filename)}')" class="btn-primary" style="padding: 8px 18px; font-size: 0.85rem; background: #4D6BFE; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; border-radius: 8px; font-weight: 600;">
+                                    <i class="fa-solid fa-play"></i> Play in Browser
+                                </button>
+                                <a href="${filePath}" download="${escapeHtml(f.filename)}" class="btn-primary" style="text-decoration: none; padding: 8px 16px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; background: #282c38; border: 1px solid #3a3f52; border-radius: 8px;">
+                                    <i class="fa-solid fa-download"></i> Download
+                                </a>
+                            </div>
+                        `;
+                        filesBar.appendChild(gameCard);
+                    } else if (f.is_minecraft_pack) {
+                        const packCard = document.createElement('div');
+                        packCard.style.cssText = 'background: rgba(77, 107, 254, 0.1); border: 1px solid rgba(77, 107, 254, 0.4); border-radius: 12px; padding: 12px 16px; margin: 10px 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;';
+                        packCard.innerHTML = `
+                            <div>
+                                <div style="font-weight: 600; font-size: 0.95rem; color: #fff;">${escapeHtml(f.badge || f.filename)}</div>
+                                <div style="font-size: 0.78rem; color: #a4b3f5; margin-top: 3px;">Drop this .zip directly into your Minecraft world's datapacks folder and type /reload!</div>
+                            </div>
+                            <a href="${filePath}" download="${escapeHtml(f.filename)}" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; padding: 8px 16px;">
+                                <i class="fa-solid fa-file-zipper"></i> Download Package (.zip)
+                            </a>
+                        `;
+                        filesBar.appendChild(packCard);
+                    } else {
+                        const pill = document.createElement('a');
+                        pill.className = 'download-pill';
+                        pill.href = filePath;
+                        pill.download = f.filename;
+                        pill.innerHTML = `<i class="fa-solid fa-file-arrow-down"></i> Download ${escapeHtml(f.filename)}`;
+                        filesBar.appendChild(pill);
+                    }
+                });
+                contentDiv.appendChild(filesBar);
+            }
+
+            // 4. Message Actions
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'message-actions';
+            actionsDiv.innerHTML = `
+                <button class="msg-action-btn" onclick="copyAnswerText(this)" title="Copy response">
+                    <i class="fa-regular fa-copy"></i> Copy
+                </button>
+                <button class="msg-action-btn" onclick="saveAsFile(this, 'txt')" title="Download response as .txt file">
+                    <i class="fa-solid fa-file-lines"></i> .txt
+                </button>
+                <button class="msg-action-btn" onclick="saveAsFile(this, 'md')" title="Download response as .md file">
+                    <i class="fa-brands fa-markdown"></i> .md
+                </button>
+            `;
+            contentDiv.appendChild(actionsDiv);
+
+            const container = document.getElementById('messagesContainer');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function toggleThinking(header) {
+            const body = header.nextElementSibling;
+            const icon = header.querySelector('.fa-chevron-down');
+            if (body.style.display === 'none') {
+                body.style.display = 'block';
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                body.style.display = 'none';
+                icon.style.transform = 'rotate(-90deg)';
+            }
+        }
+
+        function copyCode(btn) {
+            const pre = btn.closest('.code-header').nextElementSibling;
+            const code = pre.querySelector('code').innerText;
+            navigator.clipboard.writeText(code);
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied';
+            setTimeout(() => { btn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy'; }, 2000);
+        }
+
+        function downloadCode(btn, lang, idx) {
+            const pre = btn.closest('.code-header').nextElementSibling;
+            const code = pre.querySelector('code').innerText;
+
+            const extMap = { 'python': 'py', 'javascript': 'js', 'js': 'js', 'html': 'html', 'css': 'css', 'json': 'json', 'markdown': 'md', 'md': 'md', 'bash': 'sh', 'sh': 'sh', 'java': 'java', 'mcfunction': 'mcfunction' };
+            const ext = extMap[lang] || 'txt';
+            const filename = `code_export_${Date.now()}.${ext}`;
+
+            triggerBlobDownload(filename, code, 'text/plain;charset=utf-8');
+
+            clientVault.unshift({
+                name: filename,
+                size: new Blob([code]).size,
+                mtime: Date.now(),
+                type: 'generated',
+                download_url: URL.createObjectURL(new Blob([code], { type: 'text/plain' }))
+            });
+            saveClientVault();
+            refreshFilesList();
+        }
+
+        function copyAnswerText(btn) {
+            const body = btn.closest('.message-content').querySelector('.message-body').innerText;
+            navigator.clipboard.writeText(body);
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied';
+            setTimeout(() => { btn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy'; }, 2000);
+        }
+
+        function saveAsFile(btn, ext) {
+            const body = btn.closest('.message-content').querySelector('.message-body').innerText;
+            const filename = `kaleb_response_${Date.now()}.${ext}`;
+            const mime = ext === 'md' ? 'text/markdown;charset=utf-8' : 'text/plain;charset=utf-8';
+            triggerBlobDownload(filename, body, mime);
+        }
+
+        function startNewChat() {
+            conversation = [];
+            attachedFiles = [];
+            attachedFileDetails = [];
+            renderAttachmentChips();
+            const container = document.getElementById('messagesContainer');
+            container.innerHTML = `
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-logo"><i class="fa-solid fa-brain"></i></div>
+                    <h1 class="empty-title">Hi, I'm Kaleb AI.</h1>
+                    <p class="empty-subtitle">How can I help you today? Ask me to build games, Minecraft mods & packs, or answer any question.</p>
+                    <div class="suggestions-grid">
+                        <div class="suggestion-card" onclick="useSuggestion('Make a complete, playable Space Invaders retro arcade game in HTML5 Canvas with player ship, shooting laser sounds, moving alien rows, scoring, and game over screen.')">
+                            <h4><i class="fa-solid fa-gamepad" style="color: #4D6BFE;"></i> Space Arcade Game</h4>
+                            <p>Generate a complete playable game you can play & download.</p>
+                        </div>
+                        <div class="suggestion-card" onclick="useSuggestion('Make a Double Jump mod for Minecraft that gives boots with super leap when crouching.')">
+                            <h4><i class="fa-solid fa-shoe-prints" style="color: #3b82f6;"></i> Double Jump Mod</h4>
+                            <p>Generate a ready-to-drop .zip mod for your world.</p>
+                        </div>
+                        <div class="suggestion-card" onclick="useSuggestion('Make an Emerald Sword mod for Minecraft with super speed, jump boost, and magic aura.')">
+                            <h4><i class="fa-solid fa-khanda" style="color: #10b981;"></i> Emerald Sword Mod</h4>
+                            <p>Adds custom emerald blade to your inventory.</p>
+                        </div>
+                        <div class="suggestion-card" onclick="useSuggestion('Make a Lightning Hammer mod for Minecraft that summons lightning bolts on nearby enemies.')">
+                            <h4><i class="fa-solid fa-bolt" style="color: #f59e0b;"></i> Lightning Mod</h4>
+                            <p>Strike your enemies with thunder and lightning.</p>
+                        </div>
+                        <div class="suggestion-card" onclick="useSuggestion('Make a Flight mod for Minecraft that grants wings and hovering flight.')">
+                            <h4><i class="fa-solid fa-feather" style="color: #ec4899;"></i> Flight Mod</h4>
+                            <p>Glide and hover in the skies.</p>
+                        </div>
+                        <div class="suggestion-card" onclick="useSuggestion('Make a God Mode Armor mod for Minecraft with invulnerability, absorption, and regeneration.')">
+                            <h4><i class="fa-solid fa-shield-halved" style="color: #8b5cf6;"></i> God Mode Armor</h4>
+                            <p>Immortal armor with infinite health.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadChat(idx) {
+            // Already viewing active session
+        }
+
+        function exportCurrentChat() {
+            if (conversation.length === 0) {
+                alert('No chat messages to export.');
+                return;
+            }
+            let text = "# Kaleb AI Chat Export\n\n";
+            conversation.forEach(msg => {
+                text += `### ${msg.role === 'user' ? 'User' : 'Kaleb AI'}:\n${msg.content}\n\n---\n\n`;
+            });
+            triggerBlobDownload(`kaleb_ai_chat_${Date.now()}.md`, text, 'text/markdown;charset=utf-8');
+        }
+
+        // Settings
+        function openSettings() {
+            document.getElementById('settingsModal').style.display = 'flex';
+        }
+        function closeSettings() {
+            document.getElementById('settingsModal').style.display = 'none';
+        }
+        function onModelModeChange() {
+            const mode = document.getElementById('modelModeSelect').value;
+            const keyGroup = document.getElementById('apiKeyGroup');
+            const keyLabel = document.getElementById('apiKeyLabel');
+            const keyHint = document.getElementById('apiKeyHint');
+
+            if (mode === 'groq') {
+                keyGroup.style.display = 'block';
+                keyLabel.innerText = 'Groq API Key (Free)';
+                keyHint.innerHTML = 'Get a free key from <a href="https://console.groq.com/keys" target="_blank" style="color: var(--brand-blue);">console.groq.com</a> (runs DeepSeek-R1 70B at 300 tokens/sec).';
+            } else if (mode === 'deepseek') {
+                keyGroup.style.display = 'block';
+                keyLabel.innerText = 'DeepSeek API Key';
+                keyHint.innerHTML = 'Get a key from <a href="https://platform.deepseek.com" target="_blank" style="color: var(--brand-blue);">platform.deepseek.com</a> (runs DeepSeek-R1 671B).';
+            } else {
+                keyGroup.style.display = 'none';
+            }
+        }
+        function saveSettings() {
+            apiKey = document.getElementById('apiKeyInput').value.trim();
+            modelMode = document.getElementById('modelModeSelect').value;
+            localStorage.setItem('deepseek_api_key', apiKey);
+            localStorage.setItem('deepseek_model_mode', modelMode);
+            updateModelModeUI();
+            closeSettings();
+        }
+        function updateModelModeUI() {
+            const tag = document.getElementById('currentModelTag');
+            const header = document.getElementById('headerModelName');
+            if (modelMode === 'groq') {
+                tag.innerText = 'Kaleb 70B';
+                header.innerText = 'Kaleb AI (Groq 70B Engine)';
+            } else if (modelMode === 'deepseek') {
+                tag.innerText = 'Kaleb 671B';
+                header.innerText = 'Kaleb AI (Cloud 671B Engine)';
+            } else {
+                tag.innerText = 'Kaleb AI';
+                header.innerText = 'Kaleb AI (20B Reasoning Engine - Free)';
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text || '';
+            return div.innerHTML;
+        }
+
+        // Mod Merger Functions
+        async function openMergeModal() {
+            await checkServer();
+            const listDiv = document.getElementById('mergeFilesList');
+            listDiv.innerHTML = '';
+
+            let archives = [];
+            if (serverAvailable) {
+                try {
+                    const resp = await fetch(`${SERVER_ORIGIN}/api/files`);
+                    const data = await resp.json();
+                    archives = (data.files || []).filter(f => f.name.toLowerCase().endsWith('.zip') || f.name.toLowerCase().endsWith('.jar'));
+                } catch (e) {}
+            }
+            clientVault.forEach(cv => {
+                if ((cv.name.toLowerCase().endsWith('.zip') || cv.name.toLowerCase().endsWith('.jar')) && !archives.some(a => a.name === cv.name)) {
+                    archives.push(cv);
+                }
+            });
+
+            if (archives.length < 2) {
+                listDiv.innerHTML = '<div style="color: var(--text-muted); font-size: 0.82rem; padding: 12px; text-align: center;">You need at least 2 .zip or .jar files in your File Vault to merge.<br><br>Attach or upload mods using the 📎 button or generate some first!</div>';
+                document.getElementById('btnSubmitMerge').disabled = true;
+            } else {
+                document.getElementById('btnSubmitMerge').disabled = false;
+                archives.forEach((f, idx) => {
+                    const row = document.createElement('div');
+                    row.style.cssText = 'display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.85rem;';
+                    row.innerHTML = `
+                        <input type="checkbox" id="chk_merge_${idx}" value="${escapeHtml(f.name)}" checked style="accent-color: var(--brand-blue); cursor: pointer;" />
+                        <label for="chk_merge_${idx}" style="cursor: pointer; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            <i class="fa-solid fa-file-zipper" style="color: var(--brand-blue); margin-right: 6px;"></i> ${escapeHtml(f.name)}
+                        </label>
+                    `;
+                    listDiv.appendChild(row);
+                });
+            }
+
+            document.getElementById('mergeModal').style.display = 'flex';
+        }
+
+        function closeMergeModal() {
+            document.getElementById('mergeModal').style.display = 'none';
+        }
+
+        async function submitMergeMods() {
+            const checkboxes = document.querySelectorAll('#mergeFilesList input[type="checkbox"]:checked');
+            const selected = Array.from(checkboxes).map(c => c.value);
+            if (selected.length < 2) {
+                alert('Please select at least 2 mod or data pack files (.zip/.jar) to merge.');
+                return;
+            }
+
+            const btn = document.getElementById('btnSubmitMerge');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Merging Mods...';
+
+            await checkServer();
+
+            if (serverAvailable) {
+                try {
+                    const resp = await fetch(`${SERVER_ORIGIN}/api/minecraft/merge`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ files: selected })
+                    });
+                    const data = await resp.json();
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-file-zipper"></i> Merge into 1 Pack (.zip)';
+
+                    if (data.error) {
+                        alert('Merge Error: ' + data.error);
+                    } else {
+                        closeMergeModal();
+                        refreshFilesList();
+                        const a = document.createElement('a');
+                        a.href = `${SERVER_ORIGIN}${data.download_url}`;
+                        a.download = data.filename;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        return;
+                    }
+                } catch (err) {}
+            }
+
+            // Client-side fallback merging using JSZip
+            if (window.JSZip) {
+                try {
+                    const mergedZip = new JSZip();
+                    for (const fname of selected) {
+                        const fileObj = attachedFileDetails.find(f => f.name === fname);
+                        if (fileObj && fileObj.dataUrl) {
+                            const res = await fetch(fileObj.dataUrl);
+                            const buf = await res.arrayBuffer();
+                            const z = await JSZip.loadAsync(buf);
+                            z.forEach((relativePath, zipEntry) => {
+                                if (!zipEntry.dir) {
+                                    mergedZip.file(relativePath, zipEntry.async('arraybuffer'));
+                                }
+                            });
+                        }
+                    }
+                    const finalBlob = await mergedZip.generateAsync({ type: 'blob' });
+                    const finalName = `merged_mods_${Date.now()}.zip`;
+                    triggerBlobDownload(finalName, finalBlob);
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-file-zipper"></i> Merge into 1 Pack (.zip)';
+                    closeMergeModal();
+                    return;
+                } catch (e) {
+                    alert('Client merge failed: ' + e.message);
+                }
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-file-zipper"></i> Merge into 1 Pack (.zip)';
+            alert('Merge requires the backend server running or attached zip files.');
+        }
+
+        // Play Game in browser (full modal with iframe)
+        function launchGameModal(playUrl, title, downloadPath, downloadFilename) {
+            const modal = document.getElementById('gamePreviewModal');
+            const frame = document.getElementById('gameModalFrame');
+            const titleEl = document.getElementById('gameModalTitle');
+            const dlBtn = document.getElementById('gameModalDownloadBtn');
+
+            titleEl.textContent = title || 'Game Preview';
+            frame.src = playUrl;
+            dlBtn.href = downloadPath || playUrl;
+            dlBtn.download = downloadFilename || 'game.html';
+
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeGameModal() {
+            const modal = document.getElementById('gamePreviewModal');
+            const frame = document.getElementById('gameModalFrame');
+            frame.src = '';  // stop the game/audio
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        function handleGameModalClick(event) {
+            if (event.target === document.getElementById('gamePreviewModal')) {
+                closeGameModal();
+            }
+        }
+
+        // Close game modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('gamePreviewModal');
+                if (modal && modal.style.display === 'flex') closeGameModal();
+            }
+        });
+
+    </script>
+</body>
+</html>
